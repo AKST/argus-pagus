@@ -72,7 +72,7 @@ publish: build
 		exit 128 ; \
 		fi
 	( git tag ${NPM_VERSION} && git push origin ${NPM_VERSION} )
-	rm -rf dist/test dist/fixtures dist/examples
+	rm -rf lib/test lib/fixtures lib/examples
 	npm publish https://github.com/${GITHUB_PROJ}/tarball/${NPM_VERSION}
 
 
