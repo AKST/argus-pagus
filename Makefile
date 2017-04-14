@@ -67,11 +67,11 @@ publish: build
 		echo "Local/Remote history differs. Please push/pull changes." >&2 ; \
 		exit 128 ; \
 		fi
-	@if test 0 -ne `git tag -l ${NPM_PACKAGE} | wc -l` ; then \
-		echo "Tag ${NPM_PACKAGE} exists. Update package.json" >&2 ; \
+	@if test 0 -ne `git tag -l ${NPM_VERSION} | wc -l` ; then \
+		echo "Tag ${NPM_VERSION} exists. Update package.json" >&2 ; \
 		exit 128 ; \
 		fi
-	( git tag ${NPM_PACKAGE} && git push origin ${NPM_VERSION} )
+	( git tag ${NPM_VERSION} && git push origin ${NPM_VERSION} )
 	rm -rf dist/test dist/fixtures dist/examples
 	npm publish https://github.com/${GITHUB_PROJ}/tarball/${NPM_VERSION}
 
