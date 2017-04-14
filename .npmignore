@@ -1,7 +1,7 @@
-coverage
+./coverage
 doc
 src
-node_modules
 package
 *.gz
+
 
