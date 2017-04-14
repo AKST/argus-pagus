@@ -65,8 +65,10 @@ gh-pages:
 
 
 publish: publish-build
+	npm version patch
 	cd lib && npm publish
 	cd ..
+	git push origin master --tags
 
 
 todo:
