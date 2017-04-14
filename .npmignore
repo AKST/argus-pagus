@@ -4,4 +4,5 @@ src
 node_modules
 package
 *.gz
+!dist
 

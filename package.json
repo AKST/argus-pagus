@@ -1,7 +1,7 @@
 {
   "name": "argus-pagus",
   "description": "CLI parsing for node",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "keywords": [
     "cli",
     "parser",
@@ -16,8 +16,11 @@
     "Paul Jacobson",
 		"Angus Thomsen"
   ],
-	"main": "dist/index.js",
-  "files": ["dist"],
+	"directories": {
+		"bin": "./dist"
+	},
+	"main": "./dist/index.js",
+  "files": ["./dist"],
   "license": "MIT",
   "repository": "git@github.com:AKST/argus-pagus.git",
   "scripts": {
