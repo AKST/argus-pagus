@@ -1,23 +1,25 @@
 {
   "name": "argus-pagus",
   "description": "CLI parsing for node",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "keywords": [
     "cli",
     "parser",
     "argparse",
-		"argus-pargus",
-		"akst",
+    "argus-pargus",
+    "akst",
     "option",
     "args"
   ],
   "contributors": [
     "Eugene Shkuropat",
     "Paul Jacobson",
-		"Angus Thomsen"
+    "Angus Thomsen"
   ],
-	"main": "./index.js",
-	"files": ["lib"],
+  "main": "./index.js",
+  "files": [
+    "lib"
+  ],
   "license": "MIT",
   "repository": "git@github.com:AKST/argus-pagus.git",
   "scripts": {
