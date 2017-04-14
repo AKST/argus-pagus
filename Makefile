@@ -26,7 +26,7 @@ lint:
 
 
 test: build
-	cd dist && ../node_modules/.bin/mocha
+	cd lib && ../node_modules/.bin/mocha
 
 coverage:
 	rm -rf coverage
@@ -37,8 +37,8 @@ doc:
 	./node_modules/.bin/ndoc --link-format "https://github.com/{package.repository}/blob/${CURR_HEAD}/{file}#L{line}"
 
 build:
-	./node_modules/.bin/babel src --out-dir dist
-	cp -r ./src/fixtures dist/.
+	./node_modules/.bin/babel src --out-dir lib
+	cp -r ./src/fixtures lib/.
 
 gh-pages:
 	@if test -z ${REMOTE_REPO} ; then \
@@ -73,7 +73,7 @@ publish: build
 		fi
 	( git tag ${NPM_VERSION} && git push origin ${NPM_VERSION} )
 	rm -rf dist/test dist/fixtures dist/examples
-	npm publish https://github.com/${GITHUB_PROJ}/tarball/${NPM_VERSION}
+	npm pack # https://github.com/${GITHUB_PROJ}/tarball/${NPM_VERSION}
 
 
 todo:

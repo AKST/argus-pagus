@@ -1,6 +1,7 @@
 coverage
 doc
-dist
+lib
 node_modules
 package
 *.gz
+*.tgz
