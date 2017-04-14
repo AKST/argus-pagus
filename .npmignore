@@ -3,5 +3,6 @@ doc
 src
 package
 *.gz
+*.tgz
 
 
