@@ -73,7 +73,7 @@ publish: build
 		fi
 	( git tag ${NPM_VERSION} && git push origin ${NPM_VERSION} )
 	rm -rf lib/test lib/fixtures lib/examples
-	npm publish https://github.com/${GITHUB_PROJ}/tarball/${NPM_VERSION}
+	npm publish
 
 
 todo:
