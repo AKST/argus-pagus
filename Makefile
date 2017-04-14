@@ -41,6 +41,7 @@ build:
 	cp -r ./src/fixtures lib/.
 
 publish-build:
+	rm -rf lib
 	./node_modules/.bin/babel src --out-dir lib
 	rm -rf lib/test lib/fixtures lib/examples
 	cp package.json lib/.
@@ -64,7 +65,8 @@ gh-pages:
 
 
 publish: publish-build
-	npm publish
+	cd lib && npm publish
+	cd ..
 
 
 todo:
