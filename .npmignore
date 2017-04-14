@@ -1,7 +1,9 @@
-coverage
-doc
-src
-node_modules
-package
+!./dist
+./coverage
+./doc
+./src
+./node_modules
+./package
 *.gz
+
 
