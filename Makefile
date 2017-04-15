@@ -66,6 +66,7 @@ publish: publish-build
 	npm version patch
 	cd lib && npm publish
 	cd ..
+	git tags `npm view . version`
 	git push origin master --tags
 
 
