@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-const { ArgumentParser } = require('..');
+const { ArgumentParser, HELP_FLAG } = require('..');
 
 var parser = new ArgumentParser({
   version: '0.0.1',
@@ -11,4 +11,10 @@ var parser = new ArgumentParser({
   prog: 'help_example_prog',
   usage: 'Usage %(prog)s <agrs>'
 });
-parser.printHelp();
+
+const args = parser.parseArgs();
+
+if (args[HELP_FLAG]) {
+  parser.printHelp();
+  process.exit(0);
+}

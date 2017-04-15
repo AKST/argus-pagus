@@ -1,6 +1,4 @@
 NPM_PACKAGE := $(shell node -e 'process.stdout.write(require("./package.json").name)')
-NPM_VERSION := $(shell node -e 'process.stdout.write(require("./package.json").version)')
-
 TMP_PATH    := /tmp/${NPM_PACKAGE}-$(shell date +%s)
 
 REMOTE_NAME ?= origin

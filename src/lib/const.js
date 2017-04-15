@@ -6,7 +6,9 @@ const exports = {
   ONE_OR_MORE: '+',
   PARSER: 'A...',
   REMAINDER: '...',
-  _UNRECOGNIZED_ARGS_ATTR: '_unrecognized_args'
+  _UNRECOGNIZED_ARGS_ATTR: '_unrecognized_args',
+  HELP_FLAG: Symbol(),
+  VERS_FLAG: Symbol()
 };
 
 export const EOL = exports.EOL;
@@ -17,5 +19,7 @@ export const REMAINDER = exports.REMAINDER;
 export const ZERO_OR_MORE = exports.ZERO_OR_MORE;
 export const ONE_OR_MORE = exports.ONE_OR_MORE;
 export const _UNRECOGNIZED_ARGS_ATTR = exports._UNRECOGNIZED_ARGS_ATTR;
+export const HELP_FLAG = Symbol();
+export const VERS_FLAG = Symbol();
 
 export default exports;
