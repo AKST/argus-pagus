@@ -1,10 +1,25 @@
 argus-pagus
 ========
 
-Initially this was a node.js port of [pythons argparse][pyimpl], but it has been forked
-to make specific changes. The following changes have been made from the [original][original]:
+## Install
+
+```bash
+# suggested
+yarn add argus-pagus
+
+# or by y'ol npm
+npm install --save argus-pagus
+```
+
+
+## About
+
+Initially this was a node.js port of [pythons argparse][pyimpl], but it has been forked to make specific changes. The following changes have been made from the [original][original]:
 
 - Focus less on replicating the python API 1:1
+- Adding types
+- Remove all non development dependencies
+    - The only dependency at the moment is sprintf
 - Force more responsiblity on to the client calling code
     - If the help argument is provided, this library will simply state the help flag
       was provided in the return value, instead loogging to stdout, and killing the process.
@@ -12,23 +27,21 @@ to make specific changes. The following changes have been made from the [origina
 - ES Module default export
 - Various internal changes
 
-Unless specfied the with these exception this libraries API is pretty much 1:1 with
-the forked library, however this could change. For documentation [see here][docs].
+Unless specfied the with these exception this libraries API is pretty much 1:1 with the forked library, however this could change. For documentation [see here][docs].
 
 [original]: http://github.com/nodeca/argparse
 [pyimpl]: http://docs.python.org/dev/library/argparse.html
 [docs]: http://nodeca.github.com/argparse/
 
 
-Example
-=======
+## Example
 
 ```javascript
 // test.js
 import ArgumentParser, {
   HELP_FLAG,
   VERS_FLAG,
-} from 'argus-pargus';
+} from 'argus-pagus';
 
 const parser = new ArgumentParser({
   version: true,
@@ -60,7 +73,7 @@ else if (results[VERS_FLAG]) {
 }
 ```
 
-Display help:
+#### Display help:
 
 ```
 $ node ./test.js -h
@@ -76,17 +89,16 @@ Optional arguments:
   --baz BAZ          baz bar
 ```
 
-Parse arguments:
+#### Parse arguments:
 
 ```
 $ node ./test.js -f=3 --bar=4 --baz 5
 { foo: '3', bar: '4', baz: '5' }
 ```
 
-More [examples](https://github.com/akst/argus-pargus/tree/master/examples).
+More [examples](https://github.com/akst/argus-pagus/tree/master/examples).
 
-ArgumentParser objects
-======================
+## ArgumentParser objects
 
 ```javascript
 new ArgumentParser({parameters hash});
@@ -115,8 +127,7 @@ Creates a new ArgumentParser object.
 Details in [original ArgumentParser guide](http://docs.python.org/dev/library/argparse.html#argumentparser-objects)
 
 
-addArgument() method
-====================
+### addArgument() method
 
 ```javascript
 ArgumentParser.addArgument(name or flag or [name] or [flags...], {options})
@@ -145,8 +156,7 @@ Options:
 Details in [original add_argument guide](http://docs.python.org/dev/library/argparse.html#the-add-argument-method)
 
 
-Action (some details)
-================
+### Action (some details)
 
 ArgumentParser objects associate command-line arguments with actions.
 These actions can do just about anything with the command-line arguments associated
@@ -173,8 +183,7 @@ should be handled. The supported actions are:
 Details in [original action guide](http://docs.python.org/dev/library/argparse.html#action)
 
 
-Sub-commands
-============
+### Sub-commands
 
 Many programs split their functionality into a number of sub-commands, for
 example, the svn program can invoke sub-commands like `git status`, `git pull`,
@@ -187,12 +196,12 @@ This object has a single method `addParser()`, which takes a command name and
 any `ArgumentParser` constructor arguments, and returns an `ArgumentParser` object
 that can be modified as usual.
 
-Example:
+#### Example:
 
 > sub_commands.js
 
 ```javascript
-import ArgumentParser from 'argus-pargus';
+import ArgumentParser from 'argus-pagus';
 
 const parser = new ArgumentParser({
   version: true,
@@ -228,12 +237,11 @@ console.dir(parser.parseArgs());
 
 Details in [original sub-commands guide](http://docs.python.org/dev/library/argparse.html#sub-commands)
 
-Fork Author
-===========
+## Fork Author
+
 - [Angus Thomsen](https://github.com/akst)
 
-Original Authors
-============
+## Original Authors
 
 - [Eugene Shkuropat](https://github.com/shkuropat)
 - [Paul Jacobson](https://github.com/hpaulj)
