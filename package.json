@@ -1,7 +1,7 @@
 {
   "name": "argus-pagus",
   "description": "CLI parsing for node",
-  "version": "0.2.1",
+  "version": "0.2.0",
   "keywords": [
     "cli",
     "parser",

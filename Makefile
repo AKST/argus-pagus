@@ -43,6 +43,8 @@ publish-build:
 	./node_modules/.bin/babel src --out-dir lib
 	rm -rf lib/test lib/fixtures lib/examples
 	cp package.json lib/.
+	cp README.md lib/.
+	cp CHANGELOG.md lib/.
 
 gh-pages:
 	@if test -z ${REMOTE_REPO} ; then \
@@ -64,6 +66,7 @@ gh-pages:
 
 publish: publish-build
 	npm version patch
+	cp package.json lib/.
 	cd lib && npm publish
 	cd ..
 	git tags `npm view . version`
