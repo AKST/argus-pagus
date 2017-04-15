@@ -5,7 +5,7 @@
  * This class inherided from [[Action]]
  **/
 import ActionStoreConstant from '@/action/store/constant';
-import { SUPPRESS, HELP_FLAG } from '@/const';
+import { HELP_FLAG } from '@/const';
 
 
 /*:nodoc:*
