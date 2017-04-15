@@ -23,13 +23,15 @@ the forked library, however this could change. For documentation [see here][docs
 Example
 =======
 
-test.js file:
-
 ```javascript
-import ArgumentParser from 'argus-pargus';
+// test.js
+import ArgumentParser, {
+  HELP_FLAG,
+  VERS_FLAG,
+} from 'argus-pargus';
 
 const parser = new ArgumentParser({
-  version: '0.0.1',
+  version: true,
   addHelp: true,
   description: 'Argparse example'
 });
@@ -46,13 +48,22 @@ parser.addArgument('--baz', {
   help: 'baz bar'
 });
 
-console.dir(parser.parseArgs());
+const results = parser.parseArgs();
+
+if (results[HELP_FLAG]) {
+  parser.printHelp();
+  process.exit(0);
+}
+else if (results[VERS_FLAG]) {
+  console.log("your version");
+  process.exit(0);
+}
 ```
 
 Display help:
 
 ```
-$ ./test.js -h
+$ node ./test.js -h
 usage: example.js [-h] [-v] [-f FOO] [-b BAR] [--baz BAZ]
 
 Argparse example
@@ -68,7 +79,7 @@ Optional arguments:
 Parse arguments:
 
 ```
-$ ./test.js -f=3 --bar=4 --baz 5
+$ node ./test.js -f=3 --bar=4 --baz 5
 { foo: '3', bar: '4', baz: '5' }
 ```
 
@@ -158,11 +169,6 @@ should be handled. The supported actions are:
   to store constants to the same list.
 - `count` - Counts the number of times a keyword argument occurs. For example,
   used for increasing verbosity levels.
-- `help` - Prints a complete help message for all the options in the current
-  parser and then exits. By default a help action is automatically added to the parser.
-  See ArgumentParser for details of how the output is created.
-- `version` - Prints version information and exit. Expects a `version=`
-  keyword argument in the addArgument() call.
 
 Details in [original action guide](http://docs.python.org/dev/library/argparse.html#action)
 
@@ -189,7 +195,7 @@ Example:
 import ArgumentParser from 'argus-pargus';
 
 const parser = new ArgumentParser({
-  version: '0.0.1',
+  version: true,
   addHelp: true,
   description: 'Argparse examples: sub-commands',
 });
@@ -199,7 +205,7 @@ const subparsers = parser.addSubparsers({
   dest: "subcommand_name"
 });
 
-const c1 = subparsers.addParser('c1', {addHelp:true});
+const c1 = subparsers.addParser('c1', { addHelp: true });
 
 c1.addArgument([ '-f', '--foo' ], {
   action: 'store',
