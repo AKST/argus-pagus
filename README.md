@@ -1,6 +1,8 @@
 argus-pagus
 ========
 
+[![npm version](https://badge.fury.io/js/argus-pagus.svg)](https://badge.fury.io/js/argus-pagus) [![CircleCI](https://circleci.com/gh/AKST/argus-pagus.svg?style=svg)](https://circleci.com/gh/AKST/argus-pagus)
+
 ## Install
 
 ```bash

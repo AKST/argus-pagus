@@ -2,7 +2,7 @@
 
 
 import assert from 'assert';
-import { ArgumentParser } from '..';
+import { ArgumentParser, HELP_FLAG, VERS_FLAG } from '..';
 
 describe('base', function () {
   var parser;
@@ -202,12 +202,13 @@ describe('base', function () {
 
 
   it('getDefault() should get defaults', function () {
-    parser = new ArgumentParser({ debug: true });
+    parser = new ArgumentParser({ debug: true, version: true });
     parser.addArgument([ '-f', '--foo' ]);
     parser.addArgument([ '-g', '--goo' ], { defaultValue: 42 });
 
     assert.equal(parser.getDefault('goo'), 42);
-    assert.equal(parser.getDefault('help'), require('../lib/const').SUPPRESS);
+    assert.equal(parser.getDefault(HELP_FLAG), false);
+    assert.equal(parser.getDefault(VERS_FLAG), false);
   });
 
   it('should handle mixed positional and optional args', function () {
