@@ -69,7 +69,6 @@ publish: publish-build
 	cp package.json lib/.
 	cd lib && npm publish
 	cd ..
-	git tags `npm view . version`
 	git push origin master --tags
 
 
