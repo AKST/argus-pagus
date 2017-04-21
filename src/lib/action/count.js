@@ -7,7 +7,7 @@
  * This class inherided from [[Action]]
  *
  **/
-import Action from '@/action/base';
+import Action from '@/action/base'
 
 
 /*:nodoc:*
@@ -16,8 +16,8 @@ import Action from '@/action/base';
  *
  **/
 export default class ActionCount extends Action {
-  constructor(options = {}) {
-    super(Object.assign(options, { nargs: 0 }));
+  constructor (options = {}) {
+    super(Object.assign(options, { nargs: 0 }))
   }
 
   /*:nodoc:*
@@ -29,7 +29,7 @@ export default class ActionCount extends Action {
    *
    * Call the action. Save result in namespace object
    **/
-  call(parser, namespace) {
-    namespace.set(this.dest, (namespace[this.dest] || 0) + 1);
+  call (parser, namespace) {
+    namespace.set(this.dest, (namespace[this.dest] || 0) + 1)
   }
-};
+}

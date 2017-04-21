@@ -15,12 +15,12 @@ import Namespace from '@/namespace'
 import HelpFormatter from '@/help/formatter'
 import ActionContainer from '@/action_container'
 import argumentErrorHelper from '@/argument/error'
-import { has, arrayUnion, repeat } from '@/utils'
+import { has, arrayUnion, repeat, range } from '@/utils'
 import c from '@/const'
 
 
 /**
- * new ArgumentParser(options)
+ * new ArgumentParser (options)
  *
  * Create a new ArgumentParser object.
  *
@@ -45,7 +45,7 @@ import c from '@/const'
  * [1]:http://docs.python.org/dev/library/argparse.html#argumentparser-objects
  **/
 export default class ArgumentParser extends ActionContainer {
-  constructor(options = {}) {
+  constructor (options = {}) {
     options.description = (options.description || null)
     options.argumentDefault = (options.argumentDefault || null)
     options.prefixChars = (options.prefixChars || '-')
@@ -138,7 +138,7 @@ export default class ArgumentParser extends ActionContainer {
    *
    * [1]:http://docs.python.org/dev/library/argparse.html#sub-commands
    **/
-  addSubparsers(options) {
+  addSubparsers (options) {
     if (this._subparsers) {
       this.error('Cannot have multiple subparser arguments.')
     }
@@ -181,7 +181,7 @@ export default class ArgumentParser extends ActionContainer {
     return action
   }
 
-  _addAction(action) {
+  _addAction (action) {
     if (action.isOptional()) {
       this._optionals._addAction(action)
     } else {
@@ -190,13 +190,13 @@ export default class ArgumentParser extends ActionContainer {
     return action
   }
 
-  _getOptionalActions() {
+  _getOptionalActions () {
     return this._actions.filter(function (action) {
       return action.isOptional()
     })
   }
 
-  _getPositionalActions() {
+  _getPositionalActions () {
     return this._actions.filter(function (action) {
       return action.isPositional()
     })
@@ -214,7 +214,7 @@ export default class ArgumentParser extends ActionContainer {
    *
    * [1]:http://docs.python.org/dev/library/argparse.html#the-parse-args-method
    **/
-  parseArgs(args, namespace) {
+  parseArgs (args, namespace) {
     var argv
     var result = this.parseKnownArgs(args, namespace)
 
@@ -240,7 +240,7 @@ export default class ArgumentParser extends ActionContainer {
    *
    * [1]:http://docs.python.org/dev/library/argparse.html#partial-parsing
    **/
-  parseKnownArgs(_args, _namespace) {
+  parseKnownArgs (_args, _namespace) {
     // args default to the system args
     const args = _args || process.argv.slice(2)
 
@@ -279,7 +279,7 @@ export default class ArgumentParser extends ActionContainer {
     }
   }
 
-  _parseKnownArgs(argStrings, namespace) {
+  _parseKnownArgs (argStrings, namespace) {
     var self = this
 
     var extras = []
@@ -450,9 +450,11 @@ export default class ArgumentParser extends ActionContainer {
       if (actionTuples.length < 1) {
         throw new Error('length should be > 0')
       }
-      for (var i = 0; i < actionTuples.length; i++) {
+
+      for (const i of range(0, actionTuples.length)) {
         takeAction.apply(self, actionTuples[i])
       }
+
       return stop
     }
 
@@ -467,7 +469,7 @@ export default class ArgumentParser extends ActionContainer {
 
       // slice off the appropriate arg strings for each Positional
       // and add the Positional and its args to the list
-      for (var i = 0; i < positionals.length; i++) {
+      for (const i of range(0, positionals.length)) {
         var action = positionals[i]
         var argCount = argCounts[i]
         if (typeof argCount === 'undefined') {
@@ -585,7 +587,7 @@ export default class ArgumentParser extends ActionContainer {
     return [ namespace, extras ]
   }
 
-  _readArgsFromFiles(argStrings) {
+  _readArgsFromFiles (argStrings) {
     // expand arguments referencing files
     var self = this
     var newArgStrings = []
@@ -615,11 +617,11 @@ export default class ArgumentParser extends ActionContainer {
     return newArgStrings
   }
 
-  convertArgLineToArgs(argLine) {
+  convertArgLineToArgs (argLine) {
     return [ argLine ]
   }
 
-  _matchArgument(action, regexpArgStrings) {
+  _matchArgument (action, regexpArgStrings) {
 
     // match the pattern for this action to the arg strings
     var regexpNargs = new RegExp('^' + this._getNargsPattern(action))
@@ -653,21 +655,20 @@ export default class ArgumentParser extends ActionContainer {
     return matches[1].length
   }
 
-  _matchArgumentsPartial(actions, regexpArgStrings) {
+  _matchArgumentsPartial (actions, regexpArgStrings) {
     // progressively shorten the actions list by slicing off the
     // final actions until we find a match
     var result = []
     var actionSlice, pattern, matches
-    var i, j
 
     function getLength(string) {
       return string.length
     }
 
-    for (i = actions.length; i > 0; i--) {
+    for (const i of range(actions.length, 0)) {
       pattern = ''
       actionSlice = actions.slice(0, i)
-      for (j = 0; j < actionSlice.length; j++) {
+      for (const j of range(0, actionSlice.length)) {
         pattern += this._getNargsPattern(actionSlice[j])
       }
 
@@ -686,7 +687,7 @@ export default class ArgumentParser extends ActionContainer {
     return result
   }
 
-  _parseOptional(argString) {
+  _parseOptional (argString) {
     var action, optionString, argExplicit, optionTuples
 
     // if it's an empty string, it was meant to be a positional
@@ -753,7 +754,7 @@ export default class ArgumentParser extends ActionContainer {
     return [ null, argString, null ]
   }
 
-  _getOptionTuples(optionString) {
+  _getOptionTuples (optionString) {
     var result = []
     var chars = this.prefixChars
     var optionPrefix
@@ -809,7 +810,7 @@ export default class ArgumentParser extends ActionContainer {
     return result
   }
 
-  _getNargsPattern(action) {
+  _getNargsPattern (action) {
     // in all examples below, we have to allow for '--' args
     // which are represented as '-' in the pattern
     var regexpNargs
@@ -859,7 +860,7 @@ export default class ArgumentParser extends ActionContainer {
   // Value conversion methods
   //
 
-  _getValues(action, argStrings) {
+  _getValues (action, argStrings) {
     var self = this
 
     // for everything but PARSER args, strip out '--'
@@ -924,7 +925,7 @@ export default class ArgumentParser extends ActionContainer {
     return value
   }
 
-  _getValue(action, argString) {
+  _getValue (action, argString) {
     var result
 
     var typeFunction = this._registryGet('type', action.type, action.type)
@@ -956,7 +957,7 @@ export default class ArgumentParser extends ActionContainer {
     return result
   }
 
-  _checkValue(action, value) {
+  _checkValue (action, value) {
     // converted value must be one of the choices (if specified)
     var choices = action.choices
     if (choices) {
@@ -995,7 +996,7 @@ export default class ArgumentParser extends ActionContainer {
    *
    * [1]:http://docs.python.org/dev/library/argparse.html#printing-help
    **/
-  formatUsage() {
+  formatUsage () {
     var formatter = this._getFormatter()
     formatter.addUsage(this.usage, this._actions, this._mutuallyExclusiveGroups)
     return formatter.formatHelp()
@@ -1010,7 +1011,7 @@ export default class ArgumentParser extends ActionContainer {
    *
    * [1]:http://docs.python.org/dev/library/argparse.html#printing-help
    **/
-  formatHelp() {
+  formatHelp () {
     var formatter = this._getFormatter()
 
     // usage
@@ -1034,7 +1035,7 @@ export default class ArgumentParser extends ActionContainer {
     return formatter.formatHelp()
   }
 
-  _getFormatter() {
+  _getFormatter () {
     var FormatterClass = this.formatterClass
     var formatter = new FormatterClass({ prog: this.prog })
     return formatter
@@ -1053,7 +1054,7 @@ export default class ArgumentParser extends ActionContainer {
    *
    * [1]:http://docs.python.org/dev/library/argparse.html#printing-help
    **/
-  printUsage() {
+  printUsage () {
     this._printMessage(this.formatUsage())
   }
 
@@ -1066,11 +1067,11 @@ export default class ArgumentParser extends ActionContainer {
    *
    * [1]:http://docs.python.org/dev/library/argparse.html#printing-help
    **/
-  printHelp() {
+  printHelp () {
     this._printMessage(this.formatHelp())
   }
 
-  _printMessage(message, stream) {
+  _printMessage (message, stream) {
     if (!stream) {
       stream = process.stdout
     }
@@ -1090,7 +1091,7 @@ export default class ArgumentParser extends ActionContainer {
    *
    * Print message in stderr/stdout and exit program
    **/
-  exit(status, message) {
+  exit (status, message) {
     if (message) {
       if (status === 0) {
         this._printMessage(message)
@@ -1112,7 +1113,7 @@ export default class ArgumentParser extends ActionContainer {
    * either exit or throw an exception.
    *
    **/
-  error(err) {
+  error (err) {
     var message
     if (err instanceof Error) {
       if (this.debug === true) {

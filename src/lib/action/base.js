@@ -27,7 +27,7 @@
  * See also [original guide](http://docs.python.org/dev/library/argparse.html#action)
  *
  **/
-import c from '@/const';
+import c from '@/const'
 
 
 /**
@@ -66,23 +66,23 @@ import c from '@/const';
  * containing a single value will be produced.
  **/
 export default class Action  {
-  constructor(options = {}) {
-    this.optionStrings = options.optionStrings || [];
-    this.dest = options.dest;
-    this.nargs = typeof options.nargs !== 'undefined' ? options.nargs : null;
-    this.constant = typeof options.constant !== 'undefined' ? options.constant : null;
-    this.defaultValue = options.defaultValue;
-    this.type = typeof options.type !== 'undefined' ? options.type : null;
-    this.choices = typeof options.choices !== 'undefined' ? options.choices : null;
-    this.required = typeof options.required !== 'undefined' ? options.required : false;
-    this.help = typeof options.help !== 'undefined' ? options.help : null;
-    this.metavar = typeof options.metavar !== 'undefined' ? options.metavar : null;
+  constructor (options = {}) {
+    this.optionStrings = options.optionStrings || []
+    this.dest = options.dest
+    this.nargs = typeof options.nargs !== 'undefined' ? options.nargs : null
+    this.constant = typeof options.constant !== 'undefined' ? options.constant : null
+    this.defaultValue = options.defaultValue
+    this.type = typeof options.type !== 'undefined' ? options.type : null
+    this.choices = typeof options.choices !== 'undefined' ? options.choices : null
+    this.required = typeof options.required !== 'undefined' ? options.required : false
+    this.help = typeof options.help !== 'undefined' ? options.help : null
+    this.metavar = typeof options.metavar !== 'undefined' ? options.metavar : null
 
     if (!(this.optionStrings instanceof Array)) {
-      throw new Error('optionStrings should be an array');
+      throw new Error('optionStrings should be an array')
     }
     if (typeof this.required !== 'undefined' && typeof this.required !== 'boolean') {
-      throw new Error('required should be a boolean');
+      throw new Error('required should be a boolean')
     }
   }
 
@@ -91,15 +91,15 @@ export default class Action  {
    *
    * @returns {string}
    */
-  getName() {
+  getName () {
     if (this.optionStrings.length > 0) {
-      return this.optionStrings.join('/');
+      return this.optionStrings.join('/')
     } else if (this.metavar !== null && this.metavar !== c.SUPPRESS) {
-      return this.metavar;
+      return this.metavar
     } else if (typeof this.dest !== 'undefined' && this.dest !== c.SUPPRESS) {
-      return this.dest;
+      return this.dest
     }
-    return null;
+    return null
   }
 
   /**
@@ -107,8 +107,8 @@ export default class Action  {
    *
    * @returns {boolean}
    */
-  isOptional() {
-    return !this.isPositional();
+  isOptional () {
+    return !this.isPositional()
   }
 
   /**
@@ -116,8 +116,8 @@ export default class Action  {
    *
    * @returns {boolean}
    */
-  isPositional() {
-    return (this.optionStrings.length === 0);
+  isPositional () {
+    return (this.optionStrings.length === 0)
   }
 
   /**
@@ -127,16 +127,17 @@ export default class Action  {
    * ##### Example
    *
    *      ActionCount.prototype.call = function (parser, namespace, values, optionString) {
-   *        namespace.set(this.dest, (namespace[this.dest] || 0) + 1);
-   *      };
+   *        namespace.set(this.dest, (namespace[this.dest] || 0) + 1)
+   *      }
    *
    * @param parser {ArgumentParser} - current parser
    * @param namespace {Namespace} = namespace for output data
    * @param values {Array} - parsed values
    * @parsed optionString {Array} - input option string(not parsed)
    */
-  call() {
-    throw new Error('.call() not defined');// Not Implemented error
+  call () {
+		// Not Implemented error
+    throw new Error('abstract method')
   }
 }
 

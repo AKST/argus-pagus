@@ -6,8 +6,8 @@
  * This class inherited from [[Action]]
  *
  **/
-import Action from '@/action/base';
-import c from '@/const';
+import Action from '@/action/base'
+import c from '@/const'
 
 
 /*:nodoc:*
@@ -16,15 +16,15 @@ import c from '@/const';
  *
  **/
 export default class ActionStore extends Action {
-  constructor(options = {}) {
-    super(options);
+  constructor (options = {}) {
+    super(options)
     if (options.nargs <= 0) {
       throw new Error('nargs for store actions must be > 0; if you ' +
           'have nothing to store, actions such as store ' +
-          'true or store const may be more appropriate');
+          'true or store const may be more appropriate')
     }
     if (typeof options.constant !== 'undefined' && options.nargs !== c.OPTIONAL) {
-      throw new Error('nargs must be OPTIONAL to supply const');
+      throw new Error('nargs must be OPTIONAL to supply const')
     }
   }
 
@@ -37,7 +37,7 @@ export default class ActionStore extends Action {
    *
    * Call the action. Save result in namespace object
    **/
-  call(parser, namespace, values) {
-    namespace.set(this.dest, values);
+  call (parser, namespace, values) {
+    namespace.set(this.dest, values)
   }
-};
+}

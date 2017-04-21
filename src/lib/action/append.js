@@ -6,8 +6,8 @@
  * This class inherided from [[Action]]
  *
  **/
-import Action from '@/action/base';
-import c from '@/const';
+import Action from '@/action/base'
+import c from '@/const'
 
 
 /*:nodoc:*
@@ -18,15 +18,15 @@ import c from '@/const';
  * and more then zero for other
  **/
 export default class ActionAppend extends Action {
-  constructor(options = {}) {
-    super(options);
+  constructor (options = {}) {
+    super(options)
     if (options.nargs <= 0) {
       throw new Error('nargs for append actions must be > 0; if arg ' +
           'strings are not supplying the value to append, ' +
-          'the append const action may be more appropriate');
+          'the append const action may be more appropriate')
     }
     if (!!options.constant && options.nargs !== c.OPTIONAL) {
-      throw new Error('nargs must be OPTIONAL to supply const');
+      throw new Error('nargs must be OPTIONAL to supply const')
     }
   }
 
@@ -39,9 +39,9 @@ export default class ActionAppend extends Action {
    *
    * Call the action. Save result in namespace object
    **/
-  call(parser, namespace, values) {
-    var items = (namespace[this.dest] || []).slice();
-    items.push(values);
-    namespace.set(this.dest, items);
+  call (parser, namespace, values) {
+    var items = (namespace[this.dest] || []).slice()
+    items.push(values)
+    namespace.set(this.dest, items)
   }
-};
+}

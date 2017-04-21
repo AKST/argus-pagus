@@ -1,21 +1,26 @@
 // @flow
 
+type Predicate<A, B> = (a: A, b: B) => boolean
+type CountCont = Predicate<number, number>
+
 class Counter {
   _pos: number
   _end: number
   _step: number
+  _cont: CountCont
 
-  constructor (from: number, to: number, step: number) {
+  constructor (from: number, to: number, step: number, predicate: CountCont) {
     this._pos = from
     this._end = to
     this._step = step
+    this._cont = predicate
   }
 
   next (): { done: boolean, value?: number } {
-    if (this._pos >= this._end) return { done: true }
-    const result = this._pos
+    if (! this._cont(this._pos, this._end)) return { done: true }
+    const value = this._pos
     this._pos += this._step
-    return { done: false, value: result }
+    return { done: false, value }
   }
 
   /*::
@@ -32,9 +37,18 @@ class Counter {
   }
 }
 
-export function range (from: number, to: number, step: number = 1): Iterable<number> {
-  if (from > to) throw new Error('to needs be less than from')
-  return new Counter(from, to, step)
+export function range (from: number, to: number, step: ?number): Iterable<number> {
+  if (from === to) return []
+  else if (from < to) {
+    const stepCalc = step == null ? 1 : step
+    if (step < 1) throw new TypeError('invalid step')
+    return new Counter(from, to, stepCalc, (a, b) => a < b)
+  }
+  else {
+    const stepCalc = step == null ? -1 : step
+    if (step > -1) throw new TypeError('invalid step')
+    return new Counter(from, to, stepCalc, (a, b) => a > b)
+  }
 }
 
 export function repeat (string: string, times: number): string {
@@ -105,9 +119,5 @@ export function has (object: Object, key: string): boolean {
 
 export function extend<A: Object, B> (dest: B, src: ?A) {
   if (src == null) return
-
-  for (const i of Object.keys(src)) {
-    // $FlowTodo
-    dest[i] = src[i]
-  }
+  Object.assign(dest, src)
 }

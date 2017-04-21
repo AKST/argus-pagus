@@ -10,7 +10,7 @@
  * This class inherited from [[Action]]
  **/
 
-import Action from '@/action/base';
+import Action from '@/action/base'
 
 
 /*:nodoc:*
@@ -19,11 +19,11 @@ import Action from '@/action/base';
  *
  **/
 export default class ActionAppendConstant extends Action {
-  constructor(options = {}) {
+  constructor (options = {}) {
     if (typeof options.constant === 'undefined') {
-      throw new Error('constant option is required for appendAction');
+      throw new Error('constant option is required for appendAction')
     }
-    super(Object.assign(options, { nargs: 0 }));
+    super(Object.assign(options, { nargs: 0 }))
   }
 
   /*:nodoc:*
@@ -35,9 +35,9 @@ export default class ActionAppendConstant extends Action {
    *
    * Call the action. Save result in namespace object
    **/
-  call(parser, namespace) {
-    var items = [].concat(namespace[this.dest] || []);
-    items.push(this.constant);
-    namespace.set(this.dest, items);
+  call (parser, namespace) {
+    var items = [].concat(namespace[this.dest] || [])
+    items.push(this.constant)
+    namespace.set(this.dest, items)
   }
-};
+}

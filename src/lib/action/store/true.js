@@ -6,7 +6,7 @@
  *
  * This class inherited from [[Action]]
  **/
-import ActionStoreConstant from '@/action/store/constant';
+import ActionStoreConstant from '@/action/store/constant'
 
 
 /*:nodoc:*
@@ -15,9 +15,9 @@ import ActionStoreConstant from '@/action/store/constant';
  *
  **/
 export default class ActionStoreTrue extends ActionStoreConstant {
-  constructor(options = {}) {
-    options.constant = true;
-    options.defaultValue = options.defaultValue !== null ? options.defaultValue : false;
-    super(options);
+  constructor (options = {}) {
+    options.constant = true
+    options.defaultValue = options.defaultValue !== null ? options.defaultValue : false
+    super(options)
   }
-};
+}

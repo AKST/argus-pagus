@@ -8,7 +8,7 @@
  *
  * This class inherited from [[Action]]
  **/
-import Action from '@/action/base';
+import Action from '@/action/base'
 
 
 /*:nodoc:*
@@ -17,12 +17,12 @@ import Action from '@/action/base';
  *
  **/
 export default class ActionStoreConstant extends Action {
-  constructor(options = {}) {
-    options.nargs = 0;
+  constructor (options = {}) {
+    options.nargs = 0
     if (typeof options.constant === 'undefined') {
-      throw new Error('constant option is required for storeAction');
+      throw new Error('constant option is required for storeAction')
     }
-    super(options);
+    super(options)
   }
 
   /*:nodoc:*
@@ -34,7 +34,7 @@ export default class ActionStoreConstant extends Action {
    *
    * Call the action. Save result in namespace object
    **/
-  call(parser, namespace) {
-    namespace.set(this.dest, this.constant);
+  call (parser, namespace) {
+    namespace.set(this.dest, this.constant)
   }
-};
+}
