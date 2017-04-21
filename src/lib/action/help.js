@@ -1,18 +1,10 @@
-/*:nodoc:*
- * class ActionHelp
- *
- * Support action for printing help
- * This class inherided from [[Action]]
- **/
 import ActionStoreConstant from '@/action/store/constant'
 import { HELP_FLAG } from '@/const'
 
 
-/*:nodoc:*
- * new ActionHelp(options)
- * - options (object): options hash see [[Action.new]]
- *
- **/
+/**
+ * Support action for printing help
+ */
 export default class ActionHelp extends ActionStoreConstant {
   constructor (options = {}) {
     super({

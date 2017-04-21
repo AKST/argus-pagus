@@ -1,38 +1,26 @@
-/** internal
- * class ActionSubparsers
- *
- * Support the creation of such sub-commands with the addSubparsers()
- *
- * This class inherited from [[Action]]
- **/
 import { format } from 'util'
 
+import type ArgumentParser from '@/argument_parser'
+import type Namespace from '@/namespace'
 import Action from '@/action/base'
 import c from '@/const'
 import argumentErrorHelper from '@/argument/error'
 
 
-/*:nodoc:*
- * new ChoicesPseudoAction(name, help)
- *
- * Create pseudo action for correct help text
- *
- **/
 class ChoicesPseudoAction extends Action {
   constructor (name, help) {
     super({
       optionStrings: [],
       dest: name,
-      help: help
+      help: help,
     })
   }
 }
 
 /**
- * new ActionSubparsers(options)
- * - options (object): options hash see [[Action.new]]
- *
- **/
+ * Support the creation of such sub-commands with
+ * the `addSubparsers()` method call.
+ */
 export default class ActionSubparsers extends Action {
   constructor (options = {}) {
     const _nameParserMap = {}
@@ -49,35 +37,30 @@ export default class ActionSubparsers extends Action {
     this._choicesActions = []
   }
 
-  /*:nodoc:*
-   * ActionSubparsers#addParser(name, options) -> ArgumentParser
-   * - name (string): sub-command name
-   * - options (object): see [[ArgumentParser.new]]
+  /**
+   * AddParser supports an additional aliases option, which
+   * allows multiple strings to refer to the same subparser.
+   * For example, like how svn, aliases co as a shorthand for
+   * checkout.
    *
-   *  Note:
-   *  addParser supports an additional aliases option,
-   *  which allows multiple strings to refer to the same subparser.
-   *  This example, like svn, aliases co as a shorthand for checkout
-   *
-   **/
-  addParser (name, options) {
+   * @param name - Name of subparser.
+   * @param options - Configuration of sub parser.
+   */
+  addParser (name: string, options: Object) {
     var parser
 
-    var self = this
-
     options = options || {}
-
     options.debug = (this.debug === true)
 
     // set program from the existing prefix
-    if (!options.prog) {
+    if (! options.prog) {
       options.prog = this._progPrefix + ' ' + name
     }
 
     var aliases = options.aliases || []
 
     // create a pseudo-action to hold the choice help
-    if (!!options.help || typeof options.help === 'string') {
+    if (!! options.help || typeof options.help === 'string') {
       var help = options.help
       delete options.help
 
@@ -90,8 +73,8 @@ export default class ActionSubparsers extends Action {
     this._nameParserMap[name] = parser
 
     // make parser available under aliases also
-    aliases.forEach(function (alias) {
-      self._nameParserMap[alias] = parser
+    aliases.forEach(alias => {
+      this._nameParserMap[alias] = parser
     })
 
     return parser
@@ -101,16 +84,15 @@ export default class ActionSubparsers extends Action {
     return this._choicesActions
   }
 
-  /*:nodoc:*
-   * ActionSubparsers#call(parser, namespace, values, optionString) -> Void
-   * - parser (ArgumentParser): current parser
-   * - namespace (Namespace): namespace for output data
-   * - values (Array): parsed values
-   * - optionString (Array): input option string(not parsed)
+  /**
+   * Handles the action, parse input arguments.
    *
-   * Call the action. Parse input aguments
-   **/
-  call (parser, namespace, values) {
+   * @access private
+   * @param parser - The parser.
+   * @param namespace - The namespace the value is attached to.
+   * @param values - The command name.
+   */
+  call (parser: ArgumentParser, namespace: Namespace, values: Array<any>) {
     var parserName = values[0]
     var argStrings = values.slice(1)
 
@@ -122,7 +104,8 @@ export default class ActionSubparsers extends Action {
     // select the parser
     if (this._nameParserMap[parserName]) {
       parser = this._nameParserMap[parserName]
-    } else {
+    }
+    else {
       throw argumentErrorHelper(format(
         'Unknown parser "%s" (choices: [%s]).',
           parserName,

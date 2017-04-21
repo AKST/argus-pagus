@@ -1,16 +1,11 @@
-/** internal
- * class ActionContainer
- *
- * Action container. Parent for [[ArgumentParser]] and [[ArgumentGroup]]
- **/
-import { format, range } from 'util'
+import { format } from 'util'
 
 import { has, trimChars, capitalize } from '@/utils'
 import argumentErrorHelper from './argument/error'
-import makeArgumentGroup from'@/argument/group'
+import makeArgumentGroup from '@/argument/group'
 import makeMutuallyExclusiveGroup from '@/argument/exclusive'
 import c from '@/const'
-import {
+import Action, {
   ActionHelp,
   ActionAppend,
   ActionAppendConstant,
@@ -20,24 +15,20 @@ import {
   ActionStoreTrue,
   ActionStoreFalse,
   ActionVersion,
-  ActionSubparsers
+  ActionSubparsers,
 } from '@/action'
 
+export type Config = {
+  description: string,
+  prefixChars: Array<string>,
+  argumentDefault: any,
+  conflictHandler: any,
+}
 
-/**
- * new ActionContainer(options)
- *
- * Action container. Parent for [[ArgumentParser]] and [[ArgumentGroup]]
- *
- * ##### Options:
- *
- * - `description` -- A description of what the program does
- * - `prefixChars`  -- Characters that prefix optional arguments
- * - `argumentDefault`  -- The default value for all arguments
- * - `conflictHandler` -- The conflict handler to use for duplicate arguments
- **/
+export type Handler = Object | Function
+
 export default class ActionContainer {
-  constructor (options = {}) {
+  constructor (options: Config = {}) {
     this.description = options.description
     this.argumentDefault = options.argumentDefault
     this.prefixChars = options.prefixChars || ''
@@ -82,21 +73,16 @@ export default class ActionContainer {
     this._hasNegativeNumberOptionals = []
   }
 
-  //
-  // Registration methods
-  //
-
   /**
-   * ActionContainer#register(registryName, value, object) -> Void
-   * - registryName (String) : object type action|type
-   * - value (string) : keyword
-   * - object (Object|Function) : handler
+   * Register handlers.
    *
-   *  Register handlers
-   **/
-  register (registryName, value, object) {
+   * @param registryName - Name the handler will be registed under.
+   * @param value - TODO.
+   * @param handler - TODO.
+   */
+  register (registryName: string, value: string, handler: Handler) {
     this._registries[registryName] = this._registries[registryName] || {}
-    this._registries[registryName][value] = object
+    this._registries[registryName][value] = handler
   }
 
   _registryGet (registryName, value, defaultValue) {
@@ -106,40 +92,31 @@ export default class ActionContainer {
     return this._registries[registryName][value] || defaultValue
   }
 
-  //
-  // Namespace default accessor methods
-  //
-
   /**
-   * ActionContainer#setDefaults(options) -> Void
-   * - options (object):hash of options see [[Action.new]]
+   * Set defaults.
    *
-   * Set defaults
-   **/
-  setDefaults (options) {
-    options = options || {}
-    for (var property in options) {
-      if (has(options, property)) {
-        this._defaults[property] = options[property]
-      }
+   * @param optionsIn - TODO.
+   */
+  setDefaults (optionsIn: Object) {
+    const options = optionsIn || {}
+
+    for (const property of Object.keys(options)) {
+      this._defaults[property] = options[property]
     }
 
-    // if these defaults match any existing arguments, replace the previous
-    // default on the object with the new one
-    this._actions.forEach(function (action) {
-      if (has(options, action.dest)) {
-        action.defaultValue = options[action.dest]
-      }
-    })
+    // If these defaults match any existing arguments,
+    // replace the previous default on the object with
+    // the new one.
+    const relevant = this._actions.filter(a => has(options, a.dest))
+    relevant.forEach(a => void (a.defaultValue = options[a.dest]))
   }
 
   /**
-   * ActionContainer#getDefault(dest) -> Mixed
-   * - dest (string): action destination
+   * Get's the default value associated with the specified dest.
    *
-   * Return action default value
-   **/
-  getDefault (dest) {
+   * @param dest - Get's the default of the specified.
+   */
+  getDefault (dest: string): any {
     var result = has(this._defaults, dest) ? this._defaults[dest] : null
 
     this._actions.forEach(function (action) {
@@ -150,44 +127,42 @@ export default class ActionContainer {
 
     return result
   }
-  //
-  // Adding argument actions
-  //
 
   /**
-   * ActionContainer#addArgument(args, options) -> Object
-   * - args (String|Array): argument key, or array of argument keys
-   * - options (Object): action objects see [[Action.new]]
+   * @example
+   * addArgument([ '-f', '--foo' ], { action: 'store', defaultValue: 1, ... })
    *
-   * #### Examples
-   * - addArgument([ '-f', '--foo' ], { action: 'store', defaultValue: 1, ... })
-   * - addArgument([ 'bar' ], { action: 'store', nargs: 1, ... })
-   * - addArgument('--baz', { action: 'store', nargs: 1, ... })
-   **/
-  addArgument (args, options) {
-    args = args
-    options = options || {}
+   * @example
+   * addArgument([ 'bar' ], { action: 'store', nargs: 1, ... })
+   *
+   * @example
+   * addArgument('--baz', { action: 'store', nargs: 1, ... })
+   *
+   * @param argsIn - The argument being added.
+   * @param options - The configuration of the options.
+   */
+  addArgument (argsIn: string | Array<string>, options: Object = {}) {
+    const args = typeof argsIn === 'string' ? [argsIn] : argsIn
 
-    if (typeof args === 'string') {
-      args = [ args ]
-    }
-    if (!Array.isArray(args)) {
+    if (! Array.isArray(args)) {
       throw new TypeError('addArgument first argument should be a string or an array')
     }
+
     if (typeof options !== 'object' || Array.isArray(options)) {
       throw new TypeError('addArgument second argument should be a hash')
     }
 
     // if no positional args are supplied or only one is supplied and
     // it doesn't look like an option string, parse a positional argument
-    if (!args || args.length === 1 && this.prefixChars.indexOf(args[0][0]) < 0) {
-      if (args && !!options.dest) {
+    if (! args || (args.length === 1 && this.prefixChars.indexOf(args[0][0]) < 0)) {
+      if (args && !! options.dest) {
         throw new Error('dest supplied twice for positional argument')
       }
       options = this._getPositional(args, options)
 
       // otherwise, we're adding an optional argument
-    } else {
+    }
+    else {
       options = this._getOptional(args, options)
     }
 
@@ -196,7 +171,8 @@ export default class ActionContainer {
       var dest = options.dest
       if (has(this._defaults, dest)) {
         options.defaultValue = this._defaults[dest]
-      } else if (typeof this.argumentDefault !== 'undefined') {
+      }
+      else if (typeof this.argumentDefault !== 'undefined') {
         options.defaultValue = this.argumentDefault
       }
     }
@@ -218,32 +194,24 @@ export default class ActionContainer {
   }
 
   /**
-   * ActionContainer#addArgumentGroup(options) -> ArgumentGroup
-   * - options (Object): hash of options see [[ArgumentGroup.new]]
-   *
-   * Create new arguments groups
-   **/
-  addArgumentGroup (options) {
+   * @param options - TODO.
+   */
+  addArgumentGroup (options: any): ArgumentGroup {
     var group = new ArgumentGroup(this, options)
     this._actionGroups.push(group)
     return group
   }
 
   /**
-   * ActionContainer#addMutuallyExclusiveGroup(options) -> ArgumentGroup
-   * - options (Object): {required: false}
-   *
-   * Create new mutual exclusive groups
-   **/
-  addMutuallyExclusiveGroup (options) {
+   * @param options - TODO.
+   */
+  addMutuallyExclusiveGroup (options): MutuallyExclusiveGroup {
     var group = new MutuallyExclusiveGroup(this, options)
     this._mutuallyExclusiveGroups.push(group)
     return group
   }
 
-  _addAction (action) {
-    var self = this
-
+  _addAction (action: Action): Action {
     // resolve any conflicts
     this._checkConflict(action)
 
@@ -252,20 +220,17 @@ export default class ActionContainer {
     action.container = this
 
     // index the action by any option strings it has
-    action.optionStrings.forEach(function (optionString) {
-      self._optionStringActions[optionString] = action
+    action.optionStrings.forEach(optionString => {
+      this._optionStringActions[optionString] = action
     })
 
     // set the flag if any option strings look like negative numbers
-    action.optionStrings.forEach(function (optionString) {
-      if (optionString.match(self._regexpNegativeNumber)) {
-        if (!self._hasNegativeNumberOptionals.some(Boolean)) {
-          self._hasNegativeNumberOptionals.push(true)
-        }
-      }
+    action.optionStrings.forEach(optionString => {
+      if (! optionString.match(this._regexpNegativeNumber)) return
+      if (this._hasNegativeNumberOptionals.some(Boolean)) return
+      this._hasNegativeNumberOptionals.push(true)
     })
 
-    // return the created action
     return action
   }
 
@@ -288,17 +253,17 @@ export default class ActionContainer {
 
     // map each action to its group
     var groupMap = {}
-    function actionHash(action) {
+    function actionHash (action) {
       // unique (hopefully?) string suitable as dictionary key
       return action.getName()
     }
     container._actionGroups.forEach(function (group) {
       // if a group with the title exists, use that, otherwise
       // create a new group matching the container's group
-      if (!titleGroupMap[group.title]) {
+      if (! titleGroupMap[group.title]) {
         titleGroupMap[group.title] = this.addArgumentGroup({
           title: group.title,
-          description: group.description
+          description: group.description,
         })
       }
 
@@ -314,7 +279,7 @@ export default class ActionContainer {
     var mutexGroup
     container._mutuallyExclusiveGroups.forEach(function (group) {
       mutexGroup = this.addMutuallyExclusiveGroup({
-        required: group.required
+        required: group.required,
       })
       // map the actions to their new mutex group
       group._groupActions.forEach(function (action) {
@@ -327,7 +292,8 @@ export default class ActionContainer {
       var key = actionHash(action)
       if (groupMap[key]) {
         groupMap[key]._addAction(action)
-      } else {
+      }
+      else {
         this._addAction(action)
       }
     })
@@ -383,7 +349,7 @@ export default class ActionContainer {
     var dest = options.dest || null
     delete options.dest
 
-    if (!dest) {
+    if (! dest) {
       var optionStringDest = optionStringsLong.length ? optionStringsLong[0] : optionStrings[0]
       dest = trimChars(optionStringDest, this.prefixChars)
 
@@ -419,7 +385,8 @@ export default class ActionContainer {
     if (typeof func === 'undefined') {
       var msg = 'invalid conflict resolution value: ' + handlerString
       throw new Error(msg)
-    } else {
+    }
+    else {
       return func
     }
   }
@@ -444,7 +411,7 @@ export default class ActionContainer {
   }
 
   _handleConflictError (action, conflOptionals) {
-    var conflicts = conflOptionals.map(function (pair) { return pair[0] })
+    var conflicts = conflOptionals.map(pair => pair[0])
     conflicts = conflicts.join(', ')
     throw argumentErrorHelper(
       action,

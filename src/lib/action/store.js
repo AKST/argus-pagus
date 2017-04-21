@@ -1,20 +1,13 @@
-/*:nodoc:*
- * class ActionStore
- *
- * This action just stores the argument’s value. This is the default action.
- *
- * This class inherited from [[Action]]
- *
- **/
+import type ArgumentParser from '@/argument_parser'
+import type Namespace from '@/namespace'
 import Action from '@/action/base'
 import c from '@/const'
 
 
-/*:nodoc:*
- * new ActionStore(options)
- * - options (object): options hash see [[Action.new]]
- *
- **/
+/**
+ * This action just stores the argument’s value. This is
+ * the default action.
+ */
 export default class ActionStore extends Action {
   constructor (options = {}) {
     super(options)
@@ -28,16 +21,15 @@ export default class ActionStore extends Action {
     }
   }
 
-  /*:nodoc:*
-   * ActionStore#call(parser, namespace, values, optionString) -> Void
-   * - parser (ArgumentParser): current parser
-   * - namespace (Namespace): namespace for output data
-   * - values (Array): parsed values
-   * - optionString (Array): input option string(not parsed)
+  /**
+   * Call the action. Save result in namespace object.
    *
-   * Call the action. Save result in namespace object
-   **/
-  call (parser, namespace, values) {
+   * @access private
+   * @param parser - The parser.
+   * @param namespace - The namespace the value is attached to.
+   * @param values - Values being set.
+   */
+  call (parser: ArgumentParser, namespace: Namespace, values: any) {
     namespace.set(this.dest, values)
   }
 }

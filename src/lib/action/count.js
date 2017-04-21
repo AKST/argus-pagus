@@ -1,35 +1,25 @@
-/*:nodoc:*
- * class ActionCount
- *
- * This counts the number of times a keyword argument occurs.
- * For example, this is useful for increasing verbosity levels
- *
- * This class inherided from [[Action]]
- *
- **/
+import type ArgumentParser from '@/argument_parser'
+import type Namespace from '@/namespace'
 import Action from '@/action/base'
 
 
-/*:nodoc:*
- * new ActionCount(options)
- * - options (object): options hash see [[Action.new]]
- *
- **/
+/**
+ * This counts the number of times a keyword argument occurs.
+ * For example, this is useful for increasing verbosity levels.
+ */
 export default class ActionCount extends Action {
   constructor (options = {}) {
-    super(Object.assign(options, { nargs: 0 }))
+    super({ ...options, nargs: 0 })
   }
 
-  /*:nodoc:*
-   * ActionCount#call(parser, namespace, values, optionString) -> Void
-   * - parser (ArgumentParser): current parser
-   * - namespace (Namespace): namespace for output data
-   * - values (Array): parsed values
-   * - optionString (Array): input option string(not parsed)
+  /**
+   * Call the action. Save result in namespace object.
    *
-   * Call the action. Save result in namespace object
-   **/
-  call (parser, namespace) {
+   * @access private
+   * @param parser - The parser.
+   * @param namespace - The namespace the value is attached to.
+   */
+  call (parser: ArgumentParser, namespace: Namespace) {
     namespace.set(this.dest, (namespace[this.dest] || 0) + 1)
   }
 }

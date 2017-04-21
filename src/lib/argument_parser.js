@@ -6,10 +6,9 @@
  * Inherited from [[ActionContainer]]
  **/
 import fs from 'fs'
-import { format } from 'util'
 import { sprintf } from 'sprintf-js'
 import { basename } from 'path'
-import * as util from 'util'
+import { format } from 'util'
 
 import Namespace from '@/namespace'
 import HelpFormatter from '@/help/formatter'
@@ -18,6 +17,7 @@ import argumentErrorHelper from '@/argument/error'
 import { has, arrayUnion, repeat, range } from '@/utils'
 import c from '@/const'
 
+type RawNamespace = ?(Namespace | Object)
 
 /**
  * new ArgumentParser (options)
@@ -52,7 +52,7 @@ export default class ArgumentParser extends ActionContainer {
     options.conflictHandler = (options.conflictHandler || 'error')
     super(options)
 
-    options.addHelp = typeof options.addHelp === 'undefined' || !!options.addHelp
+    options.addHelp = typeof options.addHelp === 'undefined' || !! options.addHelp
     options.parents = options.parents || []
     // default program name
     options.prog = (options.prog || basename(process.argv[1]))
@@ -70,7 +70,7 @@ export default class ArgumentParser extends ActionContainer {
     this._subparsers = null
 
     // register types
-    function FUNCTION_IDENTITY(o) {
+    function FUNCTION_IDENTITY (o) {
       return o
     }
     this.register('type', 'auto', FUNCTION_IDENTITY)
@@ -101,7 +101,7 @@ export default class ArgumentParser extends ActionContainer {
         {
           action: 'help',
           defaultValue: c.SUPPRESS,
-          help: 'Show this help message and exit.'
+          help: 'Show this help message and exit.',
         }
       )
     }
@@ -112,7 +112,7 @@ export default class ArgumentParser extends ActionContainer {
         action: 'version',
         version: this.version,
         defaultValue: c.SUPPRESS,
-        help: "Show program's version number and exit."
+        help: "Show program's version number and exit.",
       })
     }
 
@@ -131,13 +131,8 @@ export default class ArgumentParser extends ActionContainer {
 
 
   /**
-   * ArgumentParser#addSubparsers(options) -> [[ActionSubparsers]]
-   * - options (object): hash of options see [[ActionSubparsers.new]]
-   *
-   * See also [subcommands][1]
-   *
-   * [1]:http://docs.python.org/dev/library/argparse.html#sub-commands
-   **/
+   * @param options - Hash for options.
+   */
   addSubparsers (options) {
     if (this._subparsers) {
       this.error('Cannot have multiple subparser arguments.')
@@ -149,22 +144,22 @@ export default class ArgumentParser extends ActionContainer {
     options.parserClass = (options.parserClass || ArgumentParser)
 
 
-    if (!!options.title || !!options.description) {
-
+    if (!! options.title || !! options.description) {
       this._subparsers = this.addArgumentGroup({
         title: (options.title || 'subcommands'),
-        description: options.description
+        description: options.description,
       })
+
       delete options.title
       delete options.description
-
-    } else {
+    }
+    else {
       this._subparsers = this._positionals
     }
 
     // prog defaults to the usage message of this parser, skipping
     // optional arguments and with no "usage:" prefix
-    if (!options.prog) {
+    if (! options.prog) {
       var formatter = this._getFormatter()
       var positionals = this._getPositionalActions()
       var groups = this._mutuallyExclusiveGroups
@@ -184,7 +179,8 @@ export default class ArgumentParser extends ActionContainer {
   _addAction (action) {
     if (action.isOptional()) {
       this._optionals._addAction(action)
-    } else {
+    }
+    else {
       this._positionals._addAction(action)
     }
     return action
@@ -204,43 +200,28 @@ export default class ArgumentParser extends ActionContainer {
 
 
   /**
-   * ArgumentParser#parseArgs(args, namespace) -> Namespace|Object
-   * - args (array): input elements
-   * - namespace (Namespace|Object): result object
+   * Parsed args and throws error if some arguments are not recognized.
    *
-   * Parsed args and throws error if some arguments are not recognized
-   *
-   * See also [original guide][1]
-   *
-   * [1]:http://docs.python.org/dev/library/argparse.html#the-parse-args-method
-   **/
-  parseArgs (args, namespace) {
-    var argv
-    var result = this.parseKnownArgs(args, namespace)
+   * @param argsIn - The arguments.
+   * @param namespace - The namespace.
+   */
+  parseArgs (argsIn: ?Array<string>, namespace: RawNamespace) {
+    const [args, argv] = this.parseKnownArgs(argsIn, namespace)
 
-    args = result[0]
-    argv = result[1]
     if (argv && argv.length > 0) {
-      this.error(
-        format('Unrecognized arguments: %s.', argv.join(' '))
-      )
+      this.error(format('Unrecognized arguments: %s.', argv.join(' ')))
     }
     return args
   }
 
   /**
-   * ArgumentParser#parseKnownArgs(args, namespace) -> array
-   * - args (array): input options
-   * - namespace (Namespace|Object): result object
-   *
    * Parse known arguments and return tuple of result object
-   * and unknown args
+   * and unknown args.
    *
-   * See also [original guide][1]
-   *
-   * [1]:http://docs.python.org/dev/library/argparse.html#partial-parsing
-   **/
-  parseKnownArgs (_args, _namespace) {
+   * @param _args - The arguments.
+   * @param _namespace - The namespace.
+   */
+  parseKnownArgs (_args: ?Array<string>, _namespace: RawNamespace) {
     // args default to the system args
     const args = _args || process.argv.slice(2)
 
@@ -249,7 +230,7 @@ export default class ArgumentParser extends ActionContainer {
 
     this._actions.forEach(action => {
       if (action.dest !== c.SUPPRESS) {
-        if (!has(namespace, action.dest)) {
+        if (! has(namespace, action.dest)) {
           if (action.defaultValue !== c.SUPPRESS) {
             var defaultValue = action.defaultValue
             if (typeof action.defaultValue === 'string') {
@@ -274,7 +255,8 @@ export default class ArgumentParser extends ActionContainer {
         delete namespace2[c._UNRECOGNIZED_ARGS_ATTR]
       }
       return [ namespace2, args2 ]
-    } catch (e) {
+    }
+    catch (e) {
       this.error(e)
     }
   }
@@ -294,7 +276,7 @@ export default class ArgumentParser extends ActionContainer {
     // though I can't conceive of a way in which an action could be a member
     // of two different mutually exclusive groups.
 
-    function actionHash(action) {
+    function actionHash (action) {
       // some sort of hashable key for this action
       // action itself cannot be a key in actionConflicts
       // I think getName() (join of optionStrings) is unique enough
@@ -307,7 +289,7 @@ export default class ArgumentParser extends ActionContainer {
     this._mutuallyExclusiveGroups.forEach(function (mutexGroup) {
       mutexGroup._groupActions.forEach(function (mutexAction, i, groupActions) {
         key = actionHash(mutexAction)
-        if (!has(actionConflicts, key)) {
+        if (! has(actionConflicts, key)) {
           actionConflicts[key] = []
         }
         conflicts = actionConflicts[key]
@@ -330,14 +312,16 @@ export default class ArgumentParser extends ActionContainer {
           argStringPatternParts.push('A')
           argStringIndex++
         }
-      } else {
+      }
+      else {
         // otherwise, add the arg to the arg strings
         // and note the index if it was an option
         var pattern
         var optionTuple = self._parseOptional(argString)
-        if (!optionTuple) {
+        if (! optionTuple) {
           pattern = 'A'
-        } else {
+        }
+        else {
           optionStringIndices[argStringIndex] = optionTuple
           pattern = 'O'
         }
@@ -350,7 +334,7 @@ export default class ArgumentParser extends ActionContainer {
     var seenNonDefaultActions = []
 
 
-    function takeAction(action, argumentStrings, optionString) {
+    function takeAction (action, argumentStrings, optionString) {
       seenActions.push(action)
       var argumentValues = self._getValues(action, argumentStrings)
 
@@ -376,7 +360,7 @@ export default class ArgumentParser extends ActionContainer {
       }
     }
 
-    function consumeOptional(startIndex) {
+    function consumeOptional (startIndex) {
       // get the optional identified at this index
       var optionTuple = optionStringIndices[startIndex]
       var action = optionTuple[0]
@@ -390,7 +374,7 @@ export default class ArgumentParser extends ActionContainer {
       var args, argCount, start, stop
 
       while (true) {
-        if (!action) {
+        if (! action) {
           extras.push(argStrings[startIndex])
           return startIndex + 1
         }
@@ -410,39 +394,39 @@ export default class ArgumentParser extends ActionContainer {
             if (Object.keys(optionalsMap).indexOf(optionString) >= 0) {
               action = optionalsMap[optionString]
               explicitArg = newExplicitArg
-            } else {
+            }
+            else {
               throw argumentErrorHelper(action, sprintf('ignored explicit argument %r', explicitArg))
             }
-          } else if (argCount === 1) {
+          }
+          else if (argCount === 1) {
             // if the action expect exactly one argument, we've
             // successfully matched the option; exit the loop
             stop = startIndex + 1
             args = [ explicitArg ]
             actionTuples.push([ action, args, optionString ])
             break
-          } else {
+          }
+          else {
             // error if a double-dash option did not use the
             // explicit argument
             throw argumentErrorHelper(action, sprintf('ignored explicit argument %r', explicitArg))
           }
-        } else {
+        }
+        else {
           // if there is no explicit argument, try to match the
           // optional's string arguments with the following strings
           // if successful, exit the loop
 
           start = startIndex + 1
-          var selectedPatterns = argStringsPattern.substr(start)
+          const selectedPatterns = argStringsPattern.substr(start)
 
           argCount = self._matchArgument(action, selectedPatterns)
           stop = start + argCount
-
-
           args = argStrings.slice(start, stop)
-
           actionTuples.push([ action, args, optionString ])
           break
         }
-
       }
 
       // add the Optional to the list and return the index at which
@@ -462,7 +446,7 @@ export default class ArgumentParser extends ActionContainer {
     // by consume_positionals()
     var positionals = self._getPositionalActions()
 
-    function consumePositionals(startIndex) {
+    function consumePositionals (startIndex) {
       // match as many Positionals as possible
       var selectedPattern = argStringsPattern.substr(startIndex)
       var argCounts = self._matchArgumentsPartial(positionals, selectedPattern)
@@ -504,13 +488,14 @@ export default class ArgumentParser extends ActionContainer {
       // consume any Positionals preceding the next option
       nextOptionStringIndex = null
       for (position in optionStringIndices) {
-        if (!optionStringIndices.hasOwnProperty(position)) { continue }
+        if (! optionStringIndices.hasOwnProperty(position)) continue
 
         position = parseInt(position, 10)
         if (position >= startIndex) {
           if (nextOptionStringIndex !== null) {
             nextOptionStringIndex = Math.min(nextOptionStringIndex, position)
-          } else {
+          }
+          else {
             nextOptionStringIndex = position
           }
         }
@@ -523,14 +508,15 @@ export default class ArgumentParser extends ActionContainer {
         if (positionalsEndIndex > startIndex) {
           startIndex = positionalsEndIndex
           continue
-        } else {
+        }
+        else {
           startIndex = positionalsEndIndex
         }
       }
 
       // if we consumed all the positionals we could and we're not
       // at the index of an option string, there were extra arguments
-      if (!optionStringIndices[startIndex]) {
+      if (! optionStringIndices[startIndex]) {
         var strings = argStrings.slice(startIndex, nextOptionStringIndex)
         extras = extras.concat(strings)
         startIndex = nextOptionStringIndex
@@ -569,7 +555,7 @@ export default class ArgumentParser extends ActionContainer {
         })
 
         // if no actions were used, report the error
-        if (!actionUsed) {
+        if (! actionUsed) {
           var names = []
           group._groupActions.forEach(function (action) {
             if (action.help !== c.SUPPRESS) {
@@ -595,7 +581,8 @@ export default class ArgumentParser extends ActionContainer {
       if (self.fromfilePrefixChars.indexOf(argString[0]) < 0) {
         // for regular arguments, just add them back into the list
         newArgStrings.push(argString)
-      } else {
+      }
+      else {
         // replace arguments referencing files with the file content
         try {
           var argstrs = []
@@ -609,7 +596,8 @@ export default class ArgumentParser extends ActionContainer {
             argstrs = self._readArgsFromFiles(argstrs)
           })
           newArgStrings.push.apply(newArgStrings, argstrs)
-        } catch (error) {
+        }
+        catch (error) {
           return self.error(error.message)
         }
       }
@@ -622,16 +610,14 @@ export default class ArgumentParser extends ActionContainer {
   }
 
   _matchArgument (action, regexpArgStrings) {
-
     // match the pattern for this action to the arg strings
     var regexpNargs = new RegExp('^' + this._getNargsPattern(action))
     var matches = regexpArgStrings.match(regexpNargs)
     var message
 
     // throw an exception if we weren't able to find a match
-    if (!matches) {
+    if (! matches) {
       switch (action.nargs) {
-        /*eslint-disable no-undefined*/
         case undefined:
         case null:
           message = 'Expected one argument.'
@@ -661,7 +647,7 @@ export default class ArgumentParser extends ActionContainer {
     var result = []
     var actionSlice, pattern, matches
 
-    function getLength(string) {
+    function getLength (string) {
       return string.length
     }
 
@@ -732,7 +718,8 @@ export default class ArgumentParser extends ActionContainer {
       ))
     // if exactly one action matched, this segmentation is good,
     // so return the parsed action
-    } else if (optionTuples.length === 1) {
+    }
+    else if (optionTuples.length === 1) {
       return optionTuples[0]
     }
 
@@ -740,7 +727,7 @@ export default class ArgumentParser extends ActionContainer {
     // number, it was meant to be positional
     // unless there are negative-number-like options
     if (argString.match(this._regexpNegativeNumber)) {
-      if (!this._hasNegativeNumberOptionals.some(Boolean)) {
+      if (! this._hasNegativeNumberOptionals.some(Boolean)) {
         return null
       }
     }
@@ -770,7 +757,8 @@ export default class ArgumentParser extends ActionContainer {
 
         optionPrefix = optionStringSplit[0]
         argExplicit = optionStringSplit[1]
-      } else {
+      }
+      else {
         optionPrefix = optionString
         argExplicit = null
       }
@@ -785,25 +773,28 @@ export default class ArgumentParser extends ActionContainer {
     // single character options can be concatenated with their arguments
     // but multiple character options always have to have their argument
     // separate
-    } else if (chars.indexOf(optionString[0]) >= 0 && chars.indexOf(optionString[1]) < 0) {
+    }
+    else if (chars.indexOf(optionString[0]) >= 0 && chars.indexOf(optionString[1]) < 0) {
       optionPrefix = optionString
       argExplicit = null
       var optionPrefixShort = optionString.substr(0, 2)
       var argExplicitShort = optionString.substr(2)
 
       for (actionOptionString in this._optionStringActions) {
-        if (!has(this._optionStringActions, actionOptionString)) continue
+        if (! has(this._optionStringActions, actionOptionString)) continue
 
         action = this._optionStringActions[actionOptionString]
         if (actionOptionString === optionPrefixShort) {
           result.push([ action, actionOptionString, argExplicitShort ])
-        } else if (actionOptionString.substr(0, optionPrefix.length) === optionPrefix) {
+        }
+        else if (actionOptionString.substr(0, optionPrefix.length) === optionPrefix) {
           result.push([ action, actionOptionString, argExplicit ])
         }
       }
 
     // shouldn't ever get here
-    } else {
+    }
+    else {
       throw new Error(format('Unexpected option string: %s.', optionString))
     }
     // return the collected option tuples
@@ -856,10 +847,6 @@ export default class ArgumentParser extends ActionContainer {
     return regexpNargs
   }
 
-  //
-  // Value conversion methods
-  //
-
   _getValues (action, argStrings) {
     var self = this
 
@@ -872,47 +859,46 @@ export default class ArgumentParser extends ActionContainer {
 
     var value, argString
 
-    // optional argument produces a default when not present
-    if (argStrings.length === 0 && action.nargs === c.OPTIONAL) {
 
+    if (argStrings.length === 0 && action.nargs === c.OPTIONAL) {
+      // optional argument produces a default when not present
       value = (action.isOptional()) ? action.constant : action.defaultValue
 
       if (typeof (value) === 'string') {
         value = this._getValue(action, value)
         this._checkValue(action, value)
       }
-
-    // when nargs='*' on a positional, if there were no command-line
-    // args, use the default if it is anything other than None
-    } else if (argStrings.length === 0 && action.nargs === c.ZERO_OR_MORE &&
-      action.optionStrings.length === 0) {
+    }
+    else if (argStrings.length === 0 &&
+             action.nargs === c.ZERO_OR_MORE &&
+             action.optionStrings.length === 0) {
+      // when nargs='*' on a positional, if there were no command-line
+      // args, use the default if it is anything other than None
 
       value = (action.defaultValue || argStrings)
       this._checkValue(action, value)
-
-    // single argument or optional argument produces a single value
-    } else if (argStrings.length === 1 &&
-          (!action.nargs || action.nargs === c.OPTIONAL)) {
-
+    }
+    else if (argStrings.length === 1 && (! action.nargs || action.nargs === c.OPTIONAL)) {
+      // single argument or optional argument produces a single value
       argString = argStrings[0]
       value = this._getValue(action, argString)
       this._checkValue(action, value)
-
-    // REMAINDER arguments convert all values, checking none
-    } else if (action.nargs === c.REMAINDER) {
+    }
+    else if (action.nargs === c.REMAINDER) {
+      // REMAINDER arguments convert all values, checking none
       value = argStrings.map(function (v) {
         return self._getValue(action, v)
       })
-
-    // PARSER arguments convert all values, but check only the first
-    } else if (action.nargs === c.PARSER) {
+    }
+    else if (action.nargs === c.PARSER) {
+      // PARSER arguments convert all values, but check only the first
       value = argStrings.map(function (v) {
         return self._getValue(action, v)
       })
       this._checkValue(action, value[0])
-
-    // all other types of nargs produce a list
-    } else {
+    }
+    else {
+      // all other types of nargs produce a list
       value = argStrings.map(function (v) {
         return self._getValue(action, v)
       })
@@ -926,35 +912,28 @@ export default class ArgumentParser extends ActionContainer {
   }
 
   _getValue (action, argString) {
-    var result
-
-    var typeFunction = this._registryGet('type', action.type, action.type)
+    const typeFunction = this._registryGet('type', action.type, action.type)
     if (typeof typeFunction !== 'function') {
       var message = format('%s is not callable', typeFunction)
       throw argumentErrorHelper(action, message)
     }
 
-    // convert the value to the appropriate type
     try {
-      result = typeFunction(argString)
-
+      // convert the value to the appropriate type
+      return typeFunction(argString)
+    }
+    catch (e) {
       // ArgumentTypeErrors indicate errors
       // If action.type is not a registered string, it is a function
       // Try to deduce its name for inclusion in the error message
       // Failing that, include the error message it raised.
-    } catch (e) {
-      var name = null
-      if (typeof action.type === 'string') {
-        name = action.type
-      } else {
-        name = action.type.name || action.type.displayName || '<function>'
-      }
-      var msg = format('Invalid %s value: %s', name, argString)
-      if (name === '<function>') { msg += '\n' + e.message }
+      const name = typeof action.type === 'string'
+        ? action.type
+        : action.type.name || action.type.displayName || '<function>'
+      const msgPrefix = format('Invalid %s value: %s', name, argString)
+      const msg = name === '<function>' ? `${msgPrefix}\n${e.message}` : msgPrefix
       throw argumentErrorHelper(action, msg)
     }
-    // return the converted value
-    return result
   }
 
   _checkValue (action, value) {
@@ -967,50 +946,36 @@ export default class ArgumentParser extends ActionContainer {
         return
       }
       // choise for subparsers can by only hash
-      if (typeof choices === 'object' && !Array.isArray(choices) && choices[value]) {
+      if (typeof choices === 'object' && ! Array.isArray(choices) && choices[value]) {
         return
       }
 
       if (typeof choices === 'string') {
         choices = choices.split('').join(', ')
-      } else if (Array.isArray(choices)) {
-        choices =  choices.join(', ')
-      } else {
-        choices =  Object.keys(choices).join(', ')
+      }
+      else if (Array.isArray(choices)) {
+        choices = choices.join(', ')
+      }
+      else {
+        choices = Object.keys(choices).join(', ')
       }
       var message = format('Invalid choice: %s (choose from [%s])', value, choices)
       throw argumentErrorHelper(action, message)
     }
   }
 
-  //
-  // Help formatting methods
-  //
-
   /**
-   * ArgumentParser#formatUsage -> string
-   *
-   * Return usage string
-   *
-   * See also [original guide][1]
-   *
-   * [1]:http://docs.python.org/dev/library/argparse.html#printing-help
-   **/
-  formatUsage () {
+   * TODO.
+   */
+  formatUsage (): string {
     var formatter = this._getFormatter()
     formatter.addUsage(this.usage, this._actions, this._mutuallyExclusiveGroups)
     return formatter.formatHelp()
   }
 
   /**
-   * ArgumentParser#formatHelp -> string
-   *
-   * Return help
-   *
-   * See also [original guide][1]
-   *
-   * [1]:http://docs.python.org/dev/library/argparse.html#printing-help
-   **/
+   * TODO.
+   */
   formatHelp () {
     var formatter = this._getFormatter()
 
@@ -1041,61 +1006,37 @@ export default class ArgumentParser extends ActionContainer {
     return formatter
   }
 
-  //
-  //  Print functions
-  //
-
   /**
-   * ArgumentParser#printUsage() -> Void
-   *
-   * Print usage
-   *
-   * See also [original guide][1]
-   *
-   * [1]:http://docs.python.org/dev/library/argparse.html#printing-help
-   **/
+   * TODO.
+   */
   printUsage () {
     this._printMessage(this.formatUsage())
   }
 
   /**
-   * ArgumentParser#printHelp() -> Void
-   *
-   * Print help
-   *
-   * See also [original guide][1]
-   *
-   * [1]:http://docs.python.org/dev/library/argparse.html#printing-help
-   **/
+   * TODO.
+   */
   printHelp () {
     this._printMessage(this.formatHelp())
   }
 
-  _printMessage (message, stream) {
-    if (!stream) {
-      stream = process.stdout
-    }
-    if (message) {
-      stream.write('' + message)
-    }
+  _printMessage (message, streamIn = null) {
+    const stream = ! streamIn ? process.stdout : streamIn
+    if (message) stream.write('' + message)
   }
 
-  //
-  //  Exit functions
-  //
-
   /**
-   * ArgumentParser#exit(status=0, message) -> Void
-   * - status (int): exit status
-   * - message (string): message
+   * Print message in stderr/stdout and exit program.
    *
-   * Print message in stderr/stdout and exit program
-   **/
-  exit (status, message) {
+   * @param status - The exit status code.
+   * @param message - The message in the exit.
+   */
+  exit (status: number, message: string) {
     if (message) {
       if (status === 0) {
         this._printMessage(message)
-      } else {
+      }
+      else {
         this._printMessage(message, process.stderr)
       }
     }
@@ -1104,23 +1045,21 @@ export default class ArgumentParser extends ActionContainer {
   }
 
   /**
-   * ArgumentParser#error(message) -> Void
-   * - err (Error|string): message
-   *
    * Error method Prints a usage message incorporating the message to stderr and
-   * exits. If you override this in a subclass,
-   * it should not return -- it should
+   * exits. If you override this in a subclass, it should not return -- it should
    * either exit or throw an exception.
    *
-   **/
-  error (err) {
+   * @param err - The error.
+   */
+  error (err: Error | string) {
     var message
     if (err instanceof Error) {
       if (this.debug === true) {
         throw err
       }
       message = err.message
-    } else {
+    }
+    else {
       message = err
     }
     var msg = format('%s: error: %s', this.prog, message) + c.EOL

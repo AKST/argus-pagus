@@ -1,19 +1,10 @@
-/*:nodoc:*
- * class ActionStoreFalse
- *
- * This action store the values False respectively.
- * This is special cases of 'storeConst'
- *
- * This class inherited from [[Action]]
- **/
 import ActionStoreConstant from '@/action/store/constant'
 
 
-/*:nodoc:*
- * new ActionStoreFalse(options)
- * - options (object): hash of options see [[Action.new]]
- *
- **/
+/**
+ * This action store the values False respectively.
+ * This is a special case of 'storeConst'.
+ */
 export default class ActionStoreFalse extends ActionStoreConstant {
   constructor (options = {}) {
     options.constant = false
