@@ -1,6 +1,6 @@
 import { sprintf } from 'sprintf-js'
 
-import { repeat, arrayEqual, trimChars } from '@/utils'
+import { repeat, arrayEqual, trimChars, range } from '@/utils'
 import c from '@/const'
 
 
@@ -39,14 +39,7 @@ class Section {
       formatter._indent()
     }
 
-    itemHelp = this._items.map(function (item) {
-      let obj, func, args
-
-      obj = formatter
-      func = item[0]
-      args = item[1]
-      return func.apply(obj, args)
-    })
+    itemHelp = this._items.map(([func, args]) => func.apply(formatter, args))
     itemHelp = formatter._joinParts(itemHelp)
 
     if (this._parent) {
@@ -61,7 +54,7 @@ class Section {
     // add the heading if the section was non-empty
     heading = ''
     if (this._heading && this._heading !== c.SUPPRESS) {
-      let currentIndent = formatter.currentIndent
+      const currentIndent = formatter.currentIndent
       heading = repeat(' ', currentIndent) + this._heading + ':' + c.EOL
     }
 
@@ -139,8 +132,8 @@ export default class HelpFormatter {
    */
   startSection (heading) {
     this._indent()
-    let section = new Section(this._currentSection, heading)
-    let func = section.formatHelp.bind(section)
+    const section = new Section(this._currentSection, heading)
+    const func = section.formatHelp.bind(section)
     this._addItem(func, [ this ])
     this._currentSection = section
   }
@@ -203,15 +196,13 @@ export default class HelpFormatter {
   addArgument (action) {
     if (action.help !== c.SUPPRESS) {
       // find all invocations
-      let invocations = [ this._formatActionInvocation(action) ]
+      const invocations = [ this._formatActionInvocation(action) ]
       let invocationLength = invocations[0].length
-
-      let actionLength
 
       if (action._getSubactions) {
         this._indent()
         action._getSubactions().forEach((subaction) => {
-          let invocationNew = this._formatActionInvocation(subaction)
+          const invocationNew = this._formatActionInvocation(subaction)
           invocations.push(invocationNew)
           invocationLength = Math.max(invocationLength, invocationNew.length)
         })
@@ -219,7 +210,7 @@ export default class HelpFormatter {
       }
 
       // update the maximum item length
-      actionLength = invocationLength + this._currentIndent
+      const actionLength = invocationLength + this._currentIndent
       this._actionMaxLength = Math.max(this._actionMaxLength, actionLength)
 
       // add the item to the list
@@ -281,11 +272,9 @@ export default class HelpFormatter {
     }
     // if optionals and positionals are available, calculate usage
     else if (! usage) {
-      let prog = this._prog
-      let optionals = []
-      let positionals = []
-      let actionUsage
-      let textWidth
+      const prog = this._prog
+      const optionals = []
+      const positionals = []
 
       // split optionals from positionals
       actions.forEach(function (action) {
@@ -298,20 +287,19 @@ export default class HelpFormatter {
       })
 
       // build full usage string
-      actionUsage = this._formatActionsUsage([].concat(optionals, positionals), groups)
+      const actionUsage = this._formatActionsUsage([].concat(optionals, positionals), groups)
       usage = [ prog, actionUsage ].join(' ')
 
       // wrap the usage parts if it's too long
-      textWidth = this._width - this._currentIndent
+      const textWidth = this._width - this._currentIndent
       if ((prefix.length + usage.length) > textWidth) {
         // break usage into wrappable parts
-        let regexpPart = new RegExp('\\(.*?\\)+|\\[.*?\\]+|\\S+', 'g')
-        let optionalUsage = this._formatActionsUsage(optionals, groups)
-        let positionalUsage = this._formatActionsUsage(positionals, groups)
+        const regexpPart = new RegExp('\\(.*?\\)+|\\[.*?\\]+|\\S+', 'g')
+        const optionalUsage = this._formatActionsUsage(optionals, groups)
+        const positionalUsage = this._formatActionsUsage(positionals, groups)
 
-
-        let optionalParts = optionalUsage.match(regexpPart)
-        let positionalParts = positionalUsage.match(regexpPart) || []
+        const optionalParts = optionalUsage.match(regexpPart)
+        const positionalParts = positionalUsage.match(regexpPart) || []
 
         if (optionalParts.join(' ') !== optionalUsage) {
           throw new Error('assert "optionalParts.join(\' \') === optionalUsage"')
@@ -321,10 +309,9 @@ export default class HelpFormatter {
         }
 
         // helper for wrapping lines
-        let getLines = function (parts, indent, prefix) {
-          let lines = []
+        const getLines = function (parts, indent, prefix) {
+          const lines = []
           let line = []
-
           let lineLength = prefix ? prefix.length - 1 : indent.length - 1
 
           parts.forEach(function (part) {
@@ -387,8 +374,8 @@ export default class HelpFormatter {
 
   _formatActionsUsage (actions, groups) {
     // find group indices and identify actions in groups
-    let groupActions = []
-    let inserts = []
+    const groupActions = []
+    const inserts = []
 
     groups.forEach((group) => {
       const start = actions.indexOf(group._groupActions[0])
@@ -481,7 +468,7 @@ export default class HelpFormatter {
     })
 
     // insert things at the necessary indices
-    for (var i = inserts.length - 1; i >= 0; --i) {
+    for (const i of range(inserts.length - 1, 0)) {
       if (inserts[i] !== null) {
         parts.splice(i, 0, inserts[i])
       }
@@ -513,7 +500,7 @@ export default class HelpFormatter {
   }
 
   _formatAction (action) {
-    let helpText, helpLines, parts, indentFirst
+    let helpText, helpLines, indentFirst
 
     // determine the required width and the entry label
     const helpPosition = Math.min(this._actionMaxLength + 2, this._maxHelpPosition)
@@ -539,7 +526,7 @@ export default class HelpFormatter {
     }
 
     // collect the pieces of the action help
-    parts = [ actionHeader ]
+    const parts = [ actionHeader ]
 
     // if there was help for the action, add lines of help text
     if (action.help) {
@@ -620,7 +607,7 @@ export default class HelpFormatter {
       if (Array.isArray(result)) return result
 
       const metavars = []
-      for (var i = 0; i < size; i += 1) {
+      for (const ignoreI of range(0, size)) {
         metavars.push(result)
       }
       return metavars
@@ -664,10 +651,10 @@ export default class HelpFormatter {
   }
 
   _expandHelp (action) {
-    let params = { prog: this._prog }
+    const params = { prog: this._prog }
 
     for (const actionProperty of Object.keys(action)) {
-      let actionValue = action[actionProperty]
+      const actionValue = action[actionProperty]
 
       if (actionValue !== c.SUPPRESS) {
         params[actionProperty] = actionValue
@@ -690,9 +677,9 @@ export default class HelpFormatter {
   }
 
   _splitLines (text, width) {
-    let lines = []
-    let delimiters = [ ' ', '.', ',', '!', '?' ]
-    let re = new RegExp('[' + delimiters.join('') + '][^' + delimiters.join('') + ']*$')
+    const lines = []
+    const delimiters = [ ' ', '.', ',', '!', '?' ]
+    const re = new RegExp('[' + delimiters.join('') + '][^' + delimiters.join('') + ']*$')
 
     text = text.replace(/[\n|\t]/g, ' ')
 

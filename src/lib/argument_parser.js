@@ -73,28 +73,25 @@ export default class ArgumentParser extends ActionContainer {
     function FUNCTION_IDENTITY (o) {
       return o
     }
+
     this.register('type', 'auto', FUNCTION_IDENTITY)
     this.register('type', null, FUNCTION_IDENTITY)
     this.register('type', 'int', function (x) {
-      var result = parseInt(x, 10)
-      if (isNaN(result)) {
-        throw new Error(x + ' is not a valid integer.')
-      }
+      const result = parseInt(x, 10)
+      if (isNaN(result)) throw new Error(x + ' is not a valid integer.')
       return result
-    })
-    this.register('type', 'float', function (x) {
-      var result = parseFloat(x)
-      if (isNaN(result)) {
-        throw new Error(x + ' is not a valid float.')
-      }
-      return result
-    })
-    this.register('type', 'string', function (x) {
-      return '' + x
     })
 
+    this.register('type', 'float', function (x) {
+      const result = parseFloat(x)
+      if (isNaN(result)) throw new Error(x + ' is not a valid float.')
+      return result
+    })
+
+    this.register('type', 'string', x => '' + x)
+
     // add help and version arguments if necessary
-    var defaultPrefix = (this.prefixChars.indexOf('-') > -1) ? '-' : this.prefixChars[0]
+    const defaultPrefix = (this.prefixChars.indexOf('-') > -1) ? '-' : this.prefixChars[0]
     if (options.addHelp) {
       this.addArgument(
         [ defaultPrefix + 'h', defaultPrefix + defaultPrefix + 'help' ],
@@ -120,10 +117,8 @@ export default class ArgumentParser extends ActionContainer {
     options.parents.forEach(parent => {
       this._addContainerActions(parent)
       if (typeof parent._defaults !== 'undefined') {
-        for (var defaultKey in parent._defaults) {
-          if (parent._defaults.hasOwnProperty(defaultKey)) {
-            this._defaults[defaultKey] = parent._defaults[defaultKey]
-          }
+        for (const defaultKey of Object.keys(parent._defaults)) {
+          this._defaults[defaultKey] = parent._defaults[defaultKey]
         }
       }
     })
@@ -160,16 +155,16 @@ export default class ArgumentParser extends ActionContainer {
     // prog defaults to the usage message of this parser, skipping
     // optional arguments and with no "usage:" prefix
     if (! options.prog) {
-      var formatter = this._getFormatter()
-      var positionals = this._getPositionalActions()
-      var groups = this._mutuallyExclusiveGroups
+      const formatter = this._getFormatter()
+      const positionals = this._getPositionalActions()
+      const groups = this._mutuallyExclusiveGroups
       formatter.addUsage(this.usage, positionals, groups, '')
       options.prog = formatter.formatHelp().trim()
     }
 
     // create the parsers action and add it to the positionals list
-    var ParsersClass = this._popActionClass(options, 'parsers')
-    var action = new ParsersClass(options)
+    const ParsersClass = this._popActionClass(options, 'parsers')
+    const action = new ParsersClass(options)
     this._subparsers._addAction(action)
 
     // return the created parsers action
@@ -232,7 +227,7 @@ export default class ArgumentParser extends ActionContainer {
       if (action.dest !== c.SUPPRESS) {
         if (! has(namespace, action.dest)) {
           if (action.defaultValue !== c.SUPPRESS) {
-            var defaultValue = action.defaultValue
+            let defaultValue = action.defaultValue
             if (typeof action.defaultValue === 'string') {
               defaultValue = this._getValue(action, defaultValue)
             }
@@ -248,7 +243,10 @@ export default class ArgumentParser extends ActionContainer {
 
     // parse the arguments and exit if there are any errors
     try {
-      let [namespace2, args2] = this._parseKnownArgs(args, namespace)
+      const result = this._parseKnownArgs(args, namespace)
+      const namespace2 = result[0]
+      let args2 = result[1]
+
 
       if (has(namespace2, c._UNRECOGNIZED_ARGS_ATTR)) {
         args2 = arrayUnion(args2, namespace2[c._UNRECOGNIZED_ARGS_ATTR])
@@ -262,9 +260,7 @@ export default class ArgumentParser extends ActionContainer {
   }
 
   _parseKnownArgs (argStrings, namespace) {
-    var self = this
-
-    var extras = []
+    let extras = []
 
     // replace arg strings that are file references
     if (this.fromfilePrefixChars !== null) {
@@ -283,8 +279,8 @@ export default class ArgumentParser extends ActionContainer {
       return action.getName()
     }
 
-    var conflicts, key
-    var actionConflicts = {}
+    let conflicts, key
+    const actionConflicts = {}
 
     this._mutuallyExclusiveGroups.forEach(function (mutexGroup) {
       mutexGroup._groupActions.forEach(function (mutexAction, i, groupActions) {
@@ -301,11 +297,10 @@ export default class ArgumentParser extends ActionContainer {
     // find all option indices, and determine the arg_string_pattern
     // which has an 'O' if there is an option at an index,
     // an 'A' if there is an argument, or a '-' if there is a '--'
-    var optionStringIndices = {}
+    const optionStringIndices = {}
+    const argStringPatternParts = []
 
-    var argStringPatternParts = []
-
-    argStrings.forEach(function (argString, argStringIndex) {
+    argStrings.forEach((argString, argStringIndex) => {
       if (argString === '--') {
         argStringPatternParts.push('-')
         while (argStringIndex < argStrings.length) {
@@ -316,8 +311,8 @@ export default class ArgumentParser extends ActionContainer {
       else {
         // otherwise, add the arg to the arg strings
         // and note the index if it was an option
-        var pattern
-        var optionTuple = self._parseOptional(argString)
+        let pattern
+        const optionTuple = this._parseOptional(argString)
         if (! optionTuple) {
           pattern = 'A'
         }
@@ -328,15 +323,14 @@ export default class ArgumentParser extends ActionContainer {
         argStringPatternParts.push(pattern)
       }
     })
-    var argStringsPattern = argStringPatternParts.join('')
 
-    var seenActions = []
-    var seenNonDefaultActions = []
+    const argStringsPattern = argStringPatternParts.join('')
+    const seenActions = []
+    const seenNonDefaultActions = []
 
-
-    function takeAction (action, argumentStrings, optionString) {
+    const takeAction = (action, argumentStrings, optionString) => {
       seenActions.push(action)
-      var argumentValues = self._getValues(action, argumentStrings)
+      const argumentValues = this._getValues(action, argumentStrings)
 
       // error if this argument is not allowed with other previously
       // seen arguments, assuming that actions that use the default
@@ -356,22 +350,22 @@ export default class ArgumentParser extends ActionContainer {
       }
 
       if (argumentValues !== c.SUPPRESS) {
-        action.call(self, namespace, argumentValues, optionString)
+        action.call(this, namespace, argumentValues, optionString)
       }
     }
 
-    function consumeOptional (startIndex) {
+    const consumeOptional = startIndex => {
       // get the optional identified at this index
-      var optionTuple = optionStringIndices[startIndex]
-      var action = optionTuple[0]
-      var optionString = optionTuple[1]
-      var explicitArg = optionTuple[2]
+      const optionTuple = optionStringIndices[startIndex]
+      let action = optionTuple[0]
+      let optionString = optionTuple[1]
+      let explicitArg = optionTuple[2]
 
       // identify additional optionals in the same arg string
       // (e.g. -xyz is the same as -x -y -z if no args are required)
-      var actionTuples = []
+      const actionTuples = []
 
-      var args, argCount, start, stop
+      let args, argCount, start, stop
 
       while (true) {
         if (! action) {
@@ -379,17 +373,17 @@ export default class ArgumentParser extends ActionContainer {
           return startIndex + 1
         }
         if (explicitArg) {
-          argCount = self._matchArgument(action, 'A')
+          argCount = this._matchArgument(action, 'A')
 
           // if the action is a single-dash option and takes no
           // arguments, try to parse more single-dash options out
           // of the tail of the option string
-          var chars = self.prefixChars
+          const chars = this.prefixChars
           if (argCount === 0 && chars.indexOf(optionString[1]) < 0) {
             actionTuples.push([ action, [], optionString ])
             optionString = optionString[0] + explicitArg[0]
-            var newExplicitArg = explicitArg.slice(1) || null
-            var optionalsMap = self._optionStringActions
+            const optionalsMap = this._optionStringActions
+            const newExplicitArg = explicitArg.slice(1) || null
 
             if (Object.keys(optionalsMap).indexOf(optionString) >= 0) {
               action = optionalsMap[optionString]
@@ -421,7 +415,7 @@ export default class ArgumentParser extends ActionContainer {
           start = startIndex + 1
           const selectedPatterns = argStringsPattern.substr(start)
 
-          argCount = self._matchArgument(action, selectedPatterns)
+          argCount = this._matchArgument(action, selectedPatterns)
           stop = start + argCount
           args = argStrings.slice(start, stop)
           actionTuples.push([ action, args, optionString ])
@@ -436,7 +430,7 @@ export default class ArgumentParser extends ActionContainer {
       }
 
       for (const i of range(0, actionTuples.length)) {
-        takeAction.apply(self, actionTuples[i])
+        takeAction.apply(this, actionTuples[i])
       }
 
       return stop
@@ -444,22 +438,22 @@ export default class ArgumentParser extends ActionContainer {
 
     // the list of Positionals left to be parsed this is modified
     // by consume_positionals()
-    var positionals = self._getPositionalActions()
+    let positionals = this._getPositionalActions()
 
-    function consumePositionals (startIndex) {
+    const consumePositionals = startIndex => {
       // match as many Positionals as possible
-      var selectedPattern = argStringsPattern.substr(startIndex)
-      var argCounts = self._matchArgumentsPartial(positionals, selectedPattern)
+      const selectedPattern = argStringsPattern.substr(startIndex)
+      const argCounts = this._matchArgumentsPartial(positionals, selectedPattern)
 
       // slice off the appropriate arg strings for each Positional
       // and add the Positional and its args to the list
       for (const i of range(0, positionals.length)) {
-        var action = positionals[i]
-        var argCount = argCounts[i]
+        const action = positionals[i]
+        const argCount = argCounts[i]
         if (typeof argCount === 'undefined') {
           continue
         }
-        var args = argStrings.slice(startIndex, startIndex + argCount)
+        const args = argStrings.slice(startIndex, startIndex + argCount)
 
         startIndex += argCount
         takeAction(action, args)
@@ -473,16 +467,16 @@ export default class ArgumentParser extends ActionContainer {
 
     // consume Positionals and Optionals alternately, until we have
     // passed the last option string
-    var startIndex = 0
-    var position
+    let startIndex = 0
+    let position
 
-    var maxOptionStringIndex = -1
+    let maxOptionStringIndex = -1
 
     Object.keys(optionStringIndices).forEach(function (position) {
       maxOptionStringIndex = Math.max(maxOptionStringIndex, parseInt(position, 10))
     })
 
-    var positionalsEndIndex, nextOptionStringIndex
+    let positionalsEndIndex, nextOptionStringIndex
 
     while (startIndex <= maxOptionStringIndex) {
       // consume any Positionals preceding the next option
@@ -517,7 +511,7 @@ export default class ArgumentParser extends ActionContainer {
       // if we consumed all the positionals we could and we're not
       // at the index of an option string, there were extra arguments
       if (! optionStringIndices[startIndex]) {
-        var strings = argStrings.slice(startIndex, nextOptionStringIndex)
+        const strings = argStrings.slice(startIndex, nextOptionStringIndex)
         extras = extras.concat(strings)
         startIndex = nextOptionStringIndex
       }
@@ -526,7 +520,7 @@ export default class ArgumentParser extends ActionContainer {
     }
 
     // consume any positionals following the last Optional
-    var stopIndex = consumePositionals(startIndex)
+    const stopIndex = consumePositionals(startIndex)
 
     // if we didn't consume all the argument strings, there were extras
     extras = extras.concat(argStrings.slice(stopIndex))
@@ -534,21 +528,21 @@ export default class ArgumentParser extends ActionContainer {
     // if we didn't use all the Positional objects, there were too few
     // arg strings supplied.
     if (positionals.length > 0) {
-      self.error('too few arguments')
+      this.error('too few arguments')
     }
 
     // make sure all required actions were present
-    self._actions.forEach(function (action) {
+    this._actions.forEach(action => {
       if (action.required) {
         if (seenActions.indexOf(action) < 0) {
-          self.error(format('Argument "%s" is required', action.getName()))
+          this.error(format('Argument "%s" is required', action.getName()))
         }
       }
     })
 
     // make sure all required groups have one option present
-    var actionUsed = false
-    self._mutuallyExclusiveGroups.forEach(function (group) {
+    let actionUsed = false
+    this._mutuallyExclusiveGroups.forEach(group => {
       if (group.required) {
         actionUsed = group._groupActions.some(function (action) {
           return seenNonDefaultActions.indexOf(action) !== -1
@@ -556,15 +550,15 @@ export default class ArgumentParser extends ActionContainer {
 
         // if no actions were used, report the error
         if (! actionUsed) {
-          var names = []
+          const names = []
           group._groupActions.forEach(function (action) {
             if (action.help !== c.SUPPRESS) {
               names.push(action.getName())
             }
           })
-          names = names.join(' ')
-          var msg = 'one of the arguments ' + names + ' is required'
-          self.error(msg)
+
+          const joinedNames = names.join(' ')
+          this.error(`one of the arguments ${joinedNames} is required`)
         }
       }
     })
@@ -575,30 +569,29 @@ export default class ArgumentParser extends ActionContainer {
 
   _readArgsFromFiles (argStrings) {
     // expand arguments referencing files
-    var self = this
-    var newArgStrings = []
-    argStrings.forEach(function (argString) {
-      if (self.fromfilePrefixChars.indexOf(argString[0]) < 0) {
+    const newArgStrings = []
+    argStrings.forEach(argString => {
+      if (this.fromfilePrefixChars.indexOf(argString[0]) < 0) {
         // for regular arguments, just add them back into the list
         newArgStrings.push(argString)
       }
       else {
         // replace arguments referencing files with the file content
         try {
-          var argstrs = []
-          var filename = argString.slice(1)
-          var content = fs.readFileSync(filename, 'utf8')
+          const filename = argString.slice(1)
+          let argstrs = []
+          let content = fs.readFileSync(filename, 'utf8')
           content = content.trim().split('\n')
-          content.forEach(function (argLine) {
-            self.convertArgLineToArgs(argLine).forEach(function (arg) {
+          content.forEach(argLine => {
+            this.convertArgLineToArgs(argLine).forEach(function (arg) {
               argstrs.push(arg)
             })
-            argstrs = self._readArgsFromFiles(argstrs)
+            argstrs = this._readArgsFromFiles(argstrs)
           })
           newArgStrings.push.apply(newArgStrings, argstrs)
         }
         catch (error) {
-          return self.error(error.message)
+          return this.error(error.message)
         }
       }
     })
@@ -611,9 +604,9 @@ export default class ArgumentParser extends ActionContainer {
 
   _matchArgument (action, regexpArgStrings) {
     // match the pattern for this action to the arg strings
-    var regexpNargs = new RegExp('^' + this._getNargsPattern(action))
-    var matches = regexpArgStrings.match(regexpNargs)
-    var message
+    const regexpNargs = new RegExp('^' + this._getNargsPattern(action))
+    const matches = regexpArgStrings.match(regexpNargs)
+    let message
 
     // throw an exception if we weren't able to find a match
     if (! matches) {
@@ -644,8 +637,8 @@ export default class ArgumentParser extends ActionContainer {
   _matchArgumentsPartial (actions, regexpArgStrings) {
     // progressively shorten the actions list by slicing off the
     // final actions until we find a match
-    var result = []
-    var actionSlice, pattern, matches
+    let result = []
+    let actionSlice, pattern, matches
 
     function getLength (string) {
       return string.length
@@ -674,7 +667,7 @@ export default class ArgumentParser extends ActionContainer {
   }
 
   _parseOptional (argString) {
-    var action, optionString, argExplicit, optionTuples
+    let action, optionString, argExplicit
 
     // if it's an empty string, it was meant to be a positional
     if (! argString) return null
@@ -705,11 +698,11 @@ export default class ArgumentParser extends ActionContainer {
 
     // search through all possible prefixes of the option string
     // and all actions in the parser for possible interpretations
-    optionTuples = this._getOptionTuples(argString)
+    const optionTuples = this._getOptionTuples(argString)
 
     // if multiple actions match, the option string was ambiguous
     if (optionTuples.length > 1) {
-      var optionStrings = optionTuples.map(function (optionTuple) {
+      const optionStrings = optionTuples.map(function (optionTuple) {
         return optionTuple[1]
       })
       this.error(format(
@@ -742,18 +735,18 @@ export default class ArgumentParser extends ActionContainer {
   }
 
   _getOptionTuples (optionString) {
-    var result = []
-    var chars = this.prefixChars
-    var optionPrefix
-    var argExplicit
-    var action
-    var actionOptionString
+    const result = []
+    const chars = this.prefixChars
+    let optionPrefix
+    let argExplicit
+    let action
+    let actionOptionString
 
     // option strings starting with two prefix characters are only split at
     // the '='
     if (chars.indexOf(optionString[0]) >= 0 && chars.indexOf(optionString[1]) >= 0) {
       if (optionString.indexOf('=') >= 0) {
-        var optionStringSplit = optionString.split('=', 1)
+        const optionStringSplit = optionString.split('=', 1)
 
         optionPrefix = optionStringSplit[0]
         argExplicit = optionStringSplit[1]
@@ -777,8 +770,8 @@ export default class ArgumentParser extends ActionContainer {
     else if (chars.indexOf(optionString[0]) >= 0 && chars.indexOf(optionString[1]) < 0) {
       optionPrefix = optionString
       argExplicit = null
-      var optionPrefixShort = optionString.substr(0, 2)
-      var argExplicitShort = optionString.substr(2)
+      const optionPrefixShort = optionString.substr(0, 2)
+      const argExplicitShort = optionString.substr(2)
 
       for (actionOptionString in this._optionStringActions) {
         if (! has(this._optionStringActions, actionOptionString)) continue
@@ -804,7 +797,7 @@ export default class ArgumentParser extends ActionContainer {
   _getNargsPattern (action) {
     // in all examples below, we have to allow for '--' args
     // which are represented as '-' in the pattern
-    var regexpNargs
+    let regexpNargs
 
     switch (action.nargs) {
       // the default (null) is assumed to be a single argument
@@ -848,8 +841,6 @@ export default class ArgumentParser extends ActionContainer {
   }
 
   _getValues (action, argStrings) {
-    var self = this
-
     // for everything but PARSER args, strip out '--'
     if (action.nargs !== c.PARSER && action.nargs !== c.REMAINDER) {
       argStrings = argStrings.filter(function (arrayElement) {
@@ -857,7 +848,7 @@ export default class ArgumentParser extends ActionContainer {
       })
     }
 
-    var value, argString
+    let value, argString
 
 
     if (argStrings.length === 0 && action.nargs === c.OPTIONAL) {
@@ -886,24 +877,24 @@ export default class ArgumentParser extends ActionContainer {
     }
     else if (action.nargs === c.REMAINDER) {
       // REMAINDER arguments convert all values, checking none
-      value = argStrings.map(function (v) {
-        return self._getValue(action, v)
+      value = argStrings.map(v => {
+        return this._getValue(action, v)
       })
     }
     else if (action.nargs === c.PARSER) {
       // PARSER arguments convert all values, but check only the first
-      value = argStrings.map(function (v) {
-        return self._getValue(action, v)
+      value = argStrings.map(v => {
+        return this._getValue(action, v)
       })
       this._checkValue(action, value[0])
     }
     else {
       // all other types of nargs produce a list
-      value = argStrings.map(function (v) {
-        return self._getValue(action, v)
+      value = argStrings.map(v => {
+        return this._getValue(action, v)
       })
-      value.forEach(function (v) {
-        self._checkValue(action, v)
+      value.forEach(v => {
+        this._checkValue(action, v)
       })
     }
 
@@ -914,7 +905,7 @@ export default class ArgumentParser extends ActionContainer {
   _getValue (action, argString) {
     const typeFunction = this._registryGet('type', action.type, action.type)
     if (typeof typeFunction !== 'function') {
-      var message = format('%s is not callable', typeFunction)
+      const message = format('%s is not callable', typeFunction)
       throw argumentErrorHelper(action, message)
     }
 
@@ -938,7 +929,7 @@ export default class ArgumentParser extends ActionContainer {
 
   _checkValue (action, value) {
     // converted value must be one of the choices (if specified)
-    var choices = action.choices
+    let choices = action.choices
     if (choices) {
       // choise for argument can by array or string
       if ((typeof choices === 'string' || Array.isArray(choices)) &&
@@ -959,7 +950,7 @@ export default class ArgumentParser extends ActionContainer {
       else {
         choices = Object.keys(choices).join(', ')
       }
-      var message = format('Invalid choice: %s (choose from [%s])', value, choices)
+      const message = format('Invalid choice: %s (choose from [%s])', value, choices)
       throw argumentErrorHelper(action, message)
     }
   }
@@ -968,7 +959,7 @@ export default class ArgumentParser extends ActionContainer {
    * TODO.
    */
   formatUsage (): string {
-    var formatter = this._getFormatter()
+    const formatter = this._getFormatter()
     formatter.addUsage(this.usage, this._actions, this._mutuallyExclusiveGroups)
     return formatter.formatHelp()
   }
@@ -977,7 +968,7 @@ export default class ArgumentParser extends ActionContainer {
    * TODO.
    */
   formatHelp () {
-    var formatter = this._getFormatter()
+    const formatter = this._getFormatter()
 
     // usage
     formatter.addUsage(this.usage, this._actions, this._mutuallyExclusiveGroups)
@@ -1001,8 +992,8 @@ export default class ArgumentParser extends ActionContainer {
   }
 
   _getFormatter () {
-    var FormatterClass = this.formatterClass
-    var formatter = new FormatterClass({ prog: this.prog })
+    const FormatterClass = this.formatterClass
+    const formatter = new FormatterClass({ prog: this.prog })
     return formatter
   }
 
@@ -1052,7 +1043,7 @@ export default class ArgumentParser extends ActionContainer {
    * @param err - The error.
    */
   error (err: Error | string) {
-    var message
+    let message
     if (err instanceof Error) {
       if (this.debug === true) {
         throw err
@@ -1062,7 +1053,7 @@ export default class ArgumentParser extends ActionContainer {
     else {
       message = err
     }
-    var msg = format('%s: error: %s', this.prog, message) + c.EOL
+    const msg = format('%s: error: %s', this.prog, message) + c.EOL
 
     if (this.debug === true) {
       throw new Error(msg)

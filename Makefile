@@ -18,6 +18,7 @@ help:
 	echo "make publish    - Set new version tag and publish npm package"
 	echo "make todo       - Find and list all TODOs"
 
+ci: type lint test
 
 lint:
 	./node_modules/.bin/eslint src/lib
@@ -27,6 +28,9 @@ type:
 
 test: build
 	cd lib && ../node_modules/.bin/mocha
+
+watch:
+	watchman-make -p 'src/**/*.js' 'src/*.js' -t type lint test
 
 coverage:
 	rm -rf coverage
@@ -78,5 +82,5 @@ todo:
 	grep 'TODO' -n -r ./lib 2>/dev/null || test true
 
 
-.PHONY: build publish lint test doc gh-pages todo
+.PHONY: watch build publish type ci lint test doc gh-pages todo
 .SILENT: help lint test doc todo

@@ -10,7 +10,12 @@
     "generator-star-spacing": ["error", {"before": false, "after": true }],
     "no-multiple-empty-lines": ["error", { "max": 2, "maxEOF": 1 }],
     "no-use-before-define": 0,
+    "no-unused-vars": ["error", { "varsIgnorePattern": "^ignore" }],
+    "no-var": "error",
+    "prefer-const": "error",
     "comma-dangle": ["error", "always-multiline"],
+
+
 
     "space-unary-ops": [2, {
       "words": true,

@@ -117,7 +117,7 @@ export default class ActionContainer {
    * @param dest - Get's the default of the specified.
    */
   getDefault (dest: string): any {
-    var result = has(this._defaults, dest) ? this._defaults[dest] : null
+    let result = has(this._defaults, dest) ? this._defaults[dest] : null
 
     this._actions.forEach(function (action) {
       if (action.dest === dest && has(action, 'defaultValue')) {
@@ -168,7 +168,7 @@ export default class ActionContainer {
 
     // if no default was supplied, use the parser-level default
     if (typeof options.defaultValue === 'undefined') {
-      var dest = options.dest
+      const dest = options.dest
       if (has(this._defaults, dest)) {
         options.defaultValue = this._defaults[dest]
       }
@@ -178,14 +178,14 @@ export default class ActionContainer {
     }
 
     // create the action object, and add it to the parser
-    var ActionClass = this._popActionClass(options)
+    const ActionClass = this._popActionClass(options)
     if (typeof ActionClass !== 'function') {
       throw new Error(format('Unknown action "%s".', ActionClass))
     }
-    var action = new ActionClass(options)
+    const action = new ActionClass(options)
 
     // throw an error if the action type is not callable
-    var typeFunction = this._registryGet('type', action.type, action.type)
+    const typeFunction = this._registryGet('type', action.type, action.type)
     if (typeof typeFunction !== 'function') {
       throw new Error(format('"%s" is not callable', typeFunction))
     }
@@ -197,7 +197,7 @@ export default class ActionContainer {
    * @param options - TODO.
    */
   addArgumentGroup (options: any): ArgumentGroup {
-    var group = new ArgumentGroup(this, options)
+    const group = new ArgumentGroup(this, options)
     this._actionGroups.push(group)
     return group
   }
@@ -206,7 +206,7 @@ export default class ActionContainer {
    * @param options - TODO.
    */
   addMutuallyExclusiveGroup (options): MutuallyExclusiveGroup {
-    var group = new MutuallyExclusiveGroup(this, options)
+    const group = new MutuallyExclusiveGroup(this, options)
     this._mutuallyExclusiveGroups.push(group)
     return group
   }
@@ -235,7 +235,7 @@ export default class ActionContainer {
   }
 
   _removeAction (action) {
-    var actionIndex = this._actions.indexOf(action)
+    const actionIndex = this._actions.indexOf(action)
     if (actionIndex >= 0) {
       this._actions.splice(actionIndex, 1)
     }
@@ -243,7 +243,7 @@ export default class ActionContainer {
 
   _addContainerActions (container) {
     // collect groups by titles
-    var titleGroupMap = {}
+    const titleGroupMap = {}
     this._actionGroups.forEach(function (group) {
       if (titleGroupMap[group.title]) {
         throw new Error(format('Cannot merge actions - two groups are named "%s".', group.title))
@@ -252,7 +252,7 @@ export default class ActionContainer {
     })
 
     // map each action to its group
-    var groupMap = {}
+    const groupMap = {}
     function actionHash (action) {
       // unique (hopefully?) string suitable as dictionary key
       return action.getName()
@@ -276,7 +276,7 @@ export default class ActionContainer {
     // add container's mutually exclusive groups
     // NOTE: if add_mutually_exclusive_group ever gains title= and
     // description= then this code will need to be expanded as above
-    var mutexGroup
+    let mutexGroup
     container._mutuallyExclusiveGroups.forEach(function (group) {
       mutexGroup = this.addMutuallyExclusiveGroup({
         required: group.required,
@@ -289,7 +289,7 @@ export default class ActionContainer {
 
     // add all actions to this container or their group
     container._actions.forEach(function (action) {
-      var key = actionHash(action)
+      const key = actionHash(action)
       if (groupMap[key]) {
         groupMap[key]._addAction(action)
       }
@@ -324,9 +324,9 @@ export default class ActionContainer {
   }
 
   _getOptional (args, options) {
-    var prefixChars = this.prefixChars
-    var optionStrings = []
-    var optionStringsLong = []
+    const prefixChars = this.prefixChars
+    const optionStrings = []
+    const optionStringsLong = []
 
     // determine short and long option strings
     args.forEach(function (optionString) {
@@ -346,11 +346,11 @@ export default class ActionContainer {
     })
 
     // infer dest, '--foo-bar' -> 'foo_bar' and '-x' -> 'x'
-    var dest = options.dest || null
+    let dest = options.dest || null
     delete options.dest
 
     if (! dest) {
-      var optionStringDest = optionStringsLong.length ? optionStringsLong[0] : optionStrings[0]
+      const optionStringDest = optionStringsLong.length ? optionStringsLong[0] : optionStrings[0]
       dest = trimChars(optionStringDest, this.prefixChars)
 
       if (dest.length === 0) {
@@ -371,19 +371,19 @@ export default class ActionContainer {
   _popActionClass (options, defaultValue) {
     defaultValue = defaultValue || null
 
-    var action = (options.action || defaultValue)
+    const action = (options.action || defaultValue)
     delete options.action
 
-    var actionClass = this._registryGet('action', action, action)
+    const actionClass = this._registryGet('action', action, action)
     return actionClass
   }
 
   _getHandler () {
-    var handlerString = this.conflictHandler
-    var handlerFuncName = '_handleConflict' + capitalize(handlerString)
-    var func = this[handlerFuncName]
+    const handlerString = this.conflictHandler
+    const handlerFuncName = '_handleConflict' + capitalize(handlerString)
+    const func = this[handlerFuncName]
     if (typeof func === 'undefined') {
-      var msg = 'invalid conflict resolution value: ' + handlerString
+      const msg = 'invalid conflict resolution value: ' + handlerString
       throw new Error(msg)
     }
     else {
@@ -392,27 +392,26 @@ export default class ActionContainer {
   }
 
   _checkConflict (action) {
-    var optionStringActions = this._optionStringActions
-    var conflictOptionals = []
+    const optionStringActions = this._optionStringActions
+    const conflictOptionals = []
 
     // find all options that conflict with this option
     // collect pairs, the string, and an existing action that it conflicts with
     action.optionStrings.forEach(function (optionString) {
-      var conflOptional = optionStringActions[optionString]
+      const conflOptional = optionStringActions[optionString]
       if (typeof conflOptional !== 'undefined') {
         conflictOptionals.push([ optionString, conflOptional ])
       }
     })
 
     if (conflictOptionals.length > 0) {
-      var conflictHandler = this._getHandler()
+      const conflictHandler = this._getHandler()
       conflictHandler.call(this, action, conflictOptionals)
     }
   }
 
   _handleConflictError (action, conflOptionals) {
-    var conflicts = conflOptionals.map(pair => pair[0])
-    conflicts = conflicts.join(', ')
+    const conflicts = conflOptionals.map(pair => pair[0]).join(', ')
     throw argumentErrorHelper(
       action,
       format('Conflicting option string(s): %s', conflicts)
@@ -421,12 +420,12 @@ export default class ActionContainer {
 
   _handleConflictResolve (action, conflOptionals) {
     // remove all conflicting options
-    var self = this
+    const self = this
     conflOptionals.forEach(function (pair) {
-      var optionString = pair[0]
-      var conflictingAction = pair[1]
+      const optionString = pair[0]
+      const conflictingAction = pair[1]
       // remove the conflicting option string
-      var i = conflictingAction.optionStrings.indexOf(optionString)
+      const i = conflictingAction.optionStrings.indexOf(optionString)
       if (i >= 0) {
         conflictingAction.optionStrings.splice(i, 1)
       }

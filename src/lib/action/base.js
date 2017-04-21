@@ -1,7 +1,22 @@
+// @flow
 import type ArgumentParser from '@/argument_parser'
 import type Namespace from '@/namespace'
 import c from '@/const'
 
+export type ActionConfig<T> = {
+  dest?: string,
+  help?: string,
+  type?: string,
+  nargs?: NArgs,
+  choices?: Array<any>,
+  metavar?: string,
+  constant?: T,
+  required?: boolean,
+  defaultValue?: T,
+  optionStrings?: Array<string>
+}
+
+export type NArgs = '*' | '+' | '?' | number
 
 /**
  * Base class for all actions, Do not call in your code, use
@@ -16,42 +31,67 @@ import c from '@/const'
  *
  * Defaults already include:
  *
- * - `store`
- * - `storeConstant`
- * - `storeTrue`
- * - `storeFalse`
- * - `append`
- * - `appendConstant`
- * - `count`
- * - `help`
- * - `version`
+ * - store
+ * - storeConstant
+ * - storeTrue
+ * - storeFalse
+ * - append
+ * - appendConstant
+ * - count
+ * - help
+ * - version
  */
-export default class Action {
-  type: any
-  metavar: any
-  help: string
-  required: boolean
-  choices: any
-  optionStrings: any
-  dest: string
-  defaultValue: any
-  constant: any
+export default class Action<T> {
+  type: ?string
 
   /**
-   * Supported args
-   *
-   * - `N` (an integer) consumes N arguments (and produces a list)
-   * - `?`  consumes zero or one arguments
-   * - `*` consumes zero or more arguments (and produces a list)
-   * - `+` consumes one or more arguments (and produces a list)
-   *
-   * Note: that the difference between the default and nargs=1 is that with the
+   * The text that is shown when help is being shown.
+   */
+  help: ?string
+
+  /**
+   * Identifier used to describe the the argument in help.
+   */
+  metavar: ?string
+
+  /**
+   * TODO.
+   */
+  required: boolean
+
+  /**
+   * TODO.
+   */
+  choices: ?Array<any>
+
+  /**
+   * TODO.
+   */
+  optionStrings: Array<string>
+
+  /**
+   * TODO.
+   */
+  dest: ?string
+
+  /**
+   * TODO.
+   */
+  defaultValue: ?T
+
+  /**
+   * TODO.
+   */
+  constant: ?T
+
+  /**
+   * The difference between the default and nargs=1 is that with the
    * default, a single value will be produced, while with nargs=1, a list
    * containing a single value will be produced.
    */
-  nargs: any
+  nargs: ?NArgs
 
-  constructor (options = {}) {
+  constructor (options: ActionConfig<T> = {}) {
     this.optionStrings = options.optionStrings || []
     this.dest = options.dest
     this.nargs = typeof options.nargs !== 'undefined' ? options.nargs : null
@@ -64,10 +104,10 @@ export default class Action {
     this.metavar = typeof options.metavar !== 'undefined' ? options.metavar : null
 
     if (! (this.optionStrings instanceof Array)) {
-      throw new Error('optionStrings should be an array')
+      throw new TypeError('optionStrings should be an array')
     }
     if (typeof this.required !== 'undefined' && typeof this.required !== 'boolean') {
-      throw new Error('required should be a boolean')
+      throw new TypeError('required should be a boolean')
     }
   }
 
@@ -114,7 +154,7 @@ export default class Action {
    * @param values - Parsed values.
    * @param optionString - Input option string(not parsed).
    */
-  call (parser: ArgumentParser, namespace: Namespace, values: Array<any>, optionString: Array<string>) {
+  call (parser: ArgumentParser, namespace: Namespace, values: Array<any>, optionString: Array<string>) { // eslint-disable-line no-unused-vars
     // Not Implemented error
     throw new Error('abstract method')
   }

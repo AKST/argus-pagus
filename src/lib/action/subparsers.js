@@ -44,12 +44,10 @@ export default class ActionSubparsers extends Action {
    * checkout.
    *
    * @param name - Name of subparser.
-   * @param options - Configuration of sub parser.
+   * @param optionsIn - Configuration of sub parser.
    */
-  addParser (name: string, options: Object) {
-    var parser
-
-    options = options || {}
+  addParser (name: string, optionsIn: Object) {
+    const options = optionsIn || {}
     options.debug = (this.debug === true)
 
     // set program from the existing prefix
@@ -57,19 +55,19 @@ export default class ActionSubparsers extends Action {
       options.prog = this._progPrefix + ' ' + name
     }
 
-    var aliases = options.aliases || []
+    const aliases = options.aliases || []
 
     // create a pseudo-action to hold the choice help
     if (!! options.help || typeof options.help === 'string') {
-      var help = options.help
+      const help = options.help
       delete options.help
 
-      var choiceAction = new ChoicesPseudoAction(name, help)
+      const choiceAction = new ChoicesPseudoAction(name, help)
       this._choicesActions.push(choiceAction)
     }
 
     // create the parser and add it to the map
-    parser = new this._parserClass(options)
+    const parser = new this._parserClass(options)
     this._nameParserMap[name] = parser
 
     // make parser available under aliases also
@@ -93,8 +91,8 @@ export default class ActionSubparsers extends Action {
    * @param values - The command name.
    */
   call (parser: ArgumentParser, namespace: Namespace, values: Array<any>) {
-    var parserName = values[0]
-    var argStrings = values.slice(1)
+    const parserName = values[0]
+    const argStrings = values.slice(1)
 
     // set the parser name if requested
     if (this.dest !== c.SUPPRESS) {
@@ -102,10 +100,7 @@ export default class ActionSubparsers extends Action {
     }
 
     // select the parser
-    if (this._nameParserMap[parserName]) {
-      parser = this._nameParserMap[parserName]
-    }
-    else {
+    if (! this._nameParserMap[parserName]) {
       throw argumentErrorHelper(format(
         'Unknown parser "%s" (choices: [%s]).',
           parserName,
@@ -114,7 +109,7 @@ export default class ActionSubparsers extends Action {
     }
 
     // parse all the remaining options into the namespace
-    parser.parseArgs(argStrings, namespace)
+    this._nameParserMap[parserName].parseArgs(argStrings, namespace)
   }
 }
 

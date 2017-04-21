@@ -63,7 +63,7 @@ export default class Namespace {
    * @param defaultValue - The default if missing.
    */
   unset (key, defaultValue) {
-    let value = this[key]
+    const value = this[key]
     if (value !== null) {
       delete this[key]
       return value

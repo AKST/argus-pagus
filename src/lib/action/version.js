@@ -1,3 +1,4 @@
+import type { ActionConfig } from '@/action/base'
 import ActionStoreConstant from '@/action/store/constant'
 import { VERS_FLAG } from '@/const'
 
@@ -6,7 +7,7 @@ import { VERS_FLAG } from '@/const'
  * This class inherited from [[Action]].
  */
 export default class ActionVersion extends ActionStoreConstant {
-  constructor (options = {}) {
+  constructor (options: ActionConfig = {}) {
     super({
       ...options,
       constant: true,

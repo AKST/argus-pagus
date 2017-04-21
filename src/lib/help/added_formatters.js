@@ -17,7 +17,7 @@ export class ArgumentDefaultsHelpFormatter extends HelpFormatter {
     let help = action.help
     if (action.help.indexOf('%(defaultValue)s') === -1) {
       if (action.defaultValue !== c.SUPPRESS) {
-        let defaultingNargs = [ c.OPTIONAL, c.ZERO_OR_MORE ]
+        const defaultingNargs = [ c.OPTIONAL, c.ZERO_OR_MORE ]
         if (action.isOptional() || (defaultingNargs.indexOf(action.nargs) >= 0)) {
           help += ' (default: %(defaultValue)s)'
         }

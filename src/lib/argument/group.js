@@ -52,7 +52,7 @@ export default (ActionContainer: any) => {
 
     _removeAction (action) {
       super._removeAction(action)
-      var actionIndex = this._groupActions.indexOf(action)
+      const actionIndex = this._groupActions.indexOf(action)
       if (actionIndex >= 0) {
         this._groupActions.splice(actionIndex, 1)
       }
