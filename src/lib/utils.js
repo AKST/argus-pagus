@@ -41,12 +41,12 @@ export function range (from: number, to: number, step: ?number): Iterable<number
   if (from === to) return []
   else if (from < to) {
     const stepCalc = step == null ? 1 : step
-    if (step < 1) throw new TypeError('invalid step')
+    if (stepCalc < 1) throw new TypeError('invalid step')
     return new Counter(from, to, stepCalc, (a, b) => a < b)
   }
   else {
     const stepCalc = step == null ? -1 : step
-    if (step > -1) throw new TypeError('invalid step')
+    if (stepCalc > -1) throw new TypeError('invalid step')
     return new Counter(from, to, stepCalc, (a, b) => a > b)
   }
 }
