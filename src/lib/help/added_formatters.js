@@ -1,6 +1,6 @@
-import HelpFormatter from '@/help/formatter';
-import { trimEnd } from '@/utils';
-import c from '@/const';
+import HelpFormatter from '@/help/formatter'
+import { trimEnd } from '@/utils'
+import c from '@/const'
 
 /**
  * new RawDescriptionHelpFormatter(options)
@@ -13,17 +13,17 @@ import c from '@/const';
  **/
 
 export class ArgumentDefaultsHelpFormatter extends HelpFormatter {
-  _getHelpString(action) {
-    var help = action.help;
+  _getHelpString (action) {
+    let help = action.help
     if (action.help.indexOf('%(defaultValue)s') === -1) {
       if (action.defaultValue !== c.SUPPRESS) {
-        var defaulting_nargs = [ c.OPTIONAL, c.ZERO_OR_MORE ];
-        if (action.isOptional() || (defaulting_nargs.indexOf(action.nargs) >= 0)) {
-          help += ' (default: %(defaultValue)s)';
+        let defaultingNargs = [ c.OPTIONAL, c.ZERO_OR_MORE ]
+        if (action.isOptional() || (defaultingNargs.indexOf(action.nargs) >= 0)) {
+          help += ' (default: %(defaultValue)s)'
         }
       }
     }
-    return help;
+    return help
   }
 }
 
@@ -38,12 +38,12 @@ export class ArgumentDefaultsHelpFormatter extends HelpFormatter {
  **/
 
 export class RawDescriptionHelpFormatter extends HelpFormatter {
-  _fillText(text, width, indent) {
-    var lines = text.split('\n');
+  _fillText (text, width, indent) {
+    let lines = text.split('\n')
     lines = lines.map(function (line) {
-      return trimEnd(indent + line);
-    });
-    return lines.join('\n');
+      return trimEnd(indent + line)
+    })
+    return lines.join('\n')
   }
 }
 
@@ -58,7 +58,7 @@ export class RawDescriptionHelpFormatter extends HelpFormatter {
  **/
 
 export class RawTextHelpFormatter extends HelpFormatter {
-  _splitLines(text) {
-    return text.split('\n');
-  };
+  _splitLines (text) {
+    return text.split('\n')
+  }
 }

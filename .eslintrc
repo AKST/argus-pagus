@@ -17,7 +17,8 @@
       "nonwords": true,
       "overrides": {
         "--": false,
-        "++": false
+        "++": false,
+        "-": false
       }
     }],
 
