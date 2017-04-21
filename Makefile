@@ -20,7 +20,7 @@ help:
 
 
 lint:
-	./node_modules/.bin/eslint src
+	./node_modules/.bin/eslint src/lib
 
 
 test: build
