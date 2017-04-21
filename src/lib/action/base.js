@@ -4,7 +4,7 @@ import type Namespace from '@/namespace'
 import c from '@/const'
 
 export type ActionConfig<T> = {
-  dest?: string,
+  dest?: string | Symbol,
   help?: string,
   type?: string,
   nargs?: NArgs,
@@ -17,6 +17,8 @@ export type ActionConfig<T> = {
 }
 
 export type NArgs = '*' | '+' | '?' | number
+
+export type Property = string | Symbol
 
 /**
  * Base class for all actions, Do not call in your code, use
@@ -72,7 +74,7 @@ export default class Action<T> {
   /**
    * TODO.
    */
-  dest: ?string
+  dest: ?Property
 
   /**
    * TODO.
@@ -114,7 +116,7 @@ export default class Action<T> {
   /**
    * Tells action name.
    */
-  getName (): ?string {
+  getName (): ?Property {
     if (this.optionStrings.length > 0) {
       return this.optionStrings.join('/')
     }

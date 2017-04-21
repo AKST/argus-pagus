@@ -1,5 +1,7 @@
+// @flow
 import type ArgumentParser from '@/argument_parser'
 import type Namespace from '@/namespace'
+import type { ActionConfig } from '@/action/base'
 import Action from '@/action/base'
 
 /**
@@ -8,8 +10,8 @@ import Action from '@/action/base'
  * The 'store_const' action is most commonly used with optional
  * arguments that specify some sort of flag.
  */
-export default class ActionStoreConstant extends Action {
-  constructor (options = {}) {
+export default class ActionStoreConstant<T> extends Action<T> {
+  constructor (options: ActionConfig<T> = {}) {
     if (typeof options.constant === 'undefined') {
       throw new Error('constant option is required for storeAction')
     }

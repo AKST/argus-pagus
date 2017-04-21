@@ -1,3 +1,5 @@
+// @flow
+import type { ActionConfig } from '@/action/base'
 import type ArgumentParser from '@/argument_parser'
 import type Namespace from '@/namespace'
 import Action from '@/action/base'
@@ -10,8 +12,8 @@ import Action from '@/action/base'
  * The 'appendConst' action is typically useful when multiple
  * arguments need to store constants to the same list.
  */
-export default class ActionAppendConstant extends Action {
-  constructor (options = {}) {
+export default class ActionAppendConstant<T> extends Action<T> {
+  constructor (options: ActionConfig<T> = {}) {
     if (typeof options.constant === 'undefined') {
       throw new Error('constant option is required for appendAction')
     }
