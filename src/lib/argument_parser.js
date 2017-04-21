@@ -5,17 +5,18 @@
  *
  * Inherited from [[ActionContainer]]
  **/
-import { format } from 'util';
-import { sprintf } from 'sprintf-js';
-import { basename } from 'path';
-import * as util from 'util';
+import fs from 'fs'
+import { format } from 'util'
+import { sprintf } from 'sprintf-js'
+import { basename } from 'path'
+import * as util from 'util'
 
-import Namespace from '@/namespace';
-import HelpFormatter from '@/help/formatter';
-import ActionContainer from '@/action_container';
-import argumentErrorHelper from '@/argument/error';
-import { has, arrayUnion, repeat } from '@/utils';
-import c from '@/const';
+import Namespace from '@/namespace'
+import HelpFormatter from '@/help/formatter'
+import ActionContainer from '@/action_container'
+import argumentErrorHelper from '@/argument/error'
+import { has, arrayUnion, repeat } from '@/utils'
+import c from '@/const'
 
 
 /**
@@ -45,55 +46,55 @@ import c from '@/const';
  **/
 export default class ArgumentParser extends ActionContainer {
   constructor(options = {}) {
-    options.description = (options.description || null);
-    options.argumentDefault = (options.argumentDefault || null);
-    options.prefixChars = (options.prefixChars || '-');
-    options.conflictHandler = (options.conflictHandler || 'error');
-    super(options);
+    options.description = (options.description || null)
+    options.argumentDefault = (options.argumentDefault || null)
+    options.prefixChars = (options.prefixChars || '-')
+    options.conflictHandler = (options.conflictHandler || 'error')
+    super(options)
 
-    options.addHelp = typeof options.addHelp === 'undefined' || !!options.addHelp;
-    options.parents = options.parents || [];
+    options.addHelp = typeof options.addHelp === 'undefined' || !!options.addHelp
+    options.parents = options.parents || []
     // default program name
-    options.prog = (options.prog || basename(process.argv[1]));
-    this.prog = options.prog;
-    this.usage = options.usage;
-    this.epilog = options.epilog;
-    this.version = options.version;
+    options.prog = (options.prog || basename(process.argv[1]))
+    this.prog = options.prog
+    this.usage = options.usage
+    this.epilog = options.epilog
+    this.version = options.version
 
-    this.debug = (options.debug === true);
+    this.debug = (options.debug === true)
 
-    this.formatterClass = (options.formatterClass || HelpFormatter);
-    this.fromfilePrefixChars = options.fromfilePrefixChars || null;
-    this._positionals = this.addArgumentGroup({ title: 'Positional arguments' });
-    this._optionals = this.addArgumentGroup({ title: 'Optional arguments' });
-    this._subparsers = null;
+    this.formatterClass = (options.formatterClass || HelpFormatter)
+    this.fromfilePrefixChars = options.fromfilePrefixChars || null
+    this._positionals = this.addArgumentGroup({ title: 'Positional arguments' })
+    this._optionals = this.addArgumentGroup({ title: 'Optional arguments' })
+    this._subparsers = null
 
     // register types
     function FUNCTION_IDENTITY(o) {
-      return o;
+      return o
     }
-    this.register('type', 'auto', FUNCTION_IDENTITY);
-    this.register('type', null, FUNCTION_IDENTITY);
+    this.register('type', 'auto', FUNCTION_IDENTITY)
+    this.register('type', null, FUNCTION_IDENTITY)
     this.register('type', 'int', function (x) {
-      var result = parseInt(x, 10);
+      var result = parseInt(x, 10)
       if (isNaN(result)) {
-        throw new Error(x + ' is not a valid integer.');
+        throw new Error(x + ' is not a valid integer.')
       }
-      return result;
-    });
+      return result
+    })
     this.register('type', 'float', function (x) {
-      var result = parseFloat(x);
+      var result = parseFloat(x)
       if (isNaN(result)) {
-        throw new Error(x + ' is not a valid float.');
+        throw new Error(x + ' is not a valid float.')
       }
-      return result;
-    });
+      return result
+    })
     this.register('type', 'string', function (x) {
-      return '' + x;
-    });
+      return '' + x
+    })
 
     // add help and version arguments if necessary
-    var defaultPrefix = (this.prefixChars.indexOf('-') > -1) ? '-' : this.prefixChars[0];
+    var defaultPrefix = (this.prefixChars.indexOf('-') > -1) ? '-' : this.prefixChars[0]
     if (options.addHelp) {
       this.addArgument(
         [ defaultPrefix + 'h', defaultPrefix + defaultPrefix + 'help' ],
@@ -102,32 +103,30 @@ export default class ArgumentParser extends ActionContainer {
           defaultValue: c.SUPPRESS,
           help: 'Show this help message and exit.'
         }
-      );
+      )
     }
 
     if (typeof this.version !== 'undefined') {
-      this.addArgument(
-        [ defaultPrefix + 'v', defaultPrefix + defaultPrefix + 'version' ],
-        {
-          action: 'version',
-          version: this.version,
-          defaultValue: c.SUPPRESS,
-          help: "Show program's version number and exit."
-        }
-      );
+      const version = [defaultPrefix + 'v', defaultPrefix + defaultPrefix + 'version']
+      this.addArgument(version, {
+        action: 'version',
+        version: this.version,
+        defaultValue: c.SUPPRESS,
+        help: "Show program's version number and exit."
+      })
     }
 
     // add parent arguments and defaults
     options.parents.forEach(parent => {
-      this._addContainerActions(parent);
+      this._addContainerActions(parent)
       if (typeof parent._defaults !== 'undefined') {
         for (var defaultKey in parent._defaults) {
           if (parent._defaults.hasOwnProperty(defaultKey)) {
-            this._defaults[defaultKey] = parent._defaults[defaultKey];
+            this._defaults[defaultKey] = parent._defaults[defaultKey]
           }
         }
       }
-    });
+    })
   }
 
 
@@ -141,13 +140,13 @@ export default class ArgumentParser extends ActionContainer {
    **/
   addSubparsers(options) {
     if (this._subparsers) {
-      this.error('Cannot have multiple subparser arguments.');
+      this.error('Cannot have multiple subparser arguments.')
     }
 
-    options = options || {};
-    options.debug = (this.debug === true);
-    options.optionStrings = [];
-    options.parserClass = (options.parserClass || ArgumentParser);
+    options = options || {}
+    options.debug = (this.debug === true)
+    options.optionStrings = []
+    options.parserClass = (options.parserClass || ArgumentParser)
 
 
     if (!!options.title || !!options.description) {
@@ -155,53 +154,53 @@ export default class ArgumentParser extends ActionContainer {
       this._subparsers = this.addArgumentGroup({
         title: (options.title || 'subcommands'),
         description: options.description
-      });
-      delete options.title;
-      delete options.description;
+      })
+      delete options.title
+      delete options.description
 
     } else {
-      this._subparsers = this._positionals;
+      this._subparsers = this._positionals
     }
 
     // prog defaults to the usage message of this parser, skipping
     // optional arguments and with no "usage:" prefix
     if (!options.prog) {
-      var formatter = this._getFormatter();
-      var positionals = this._getPositionalActions();
-      var groups = this._mutuallyExclusiveGroups;
-      formatter.addUsage(this.usage, positionals, groups, '');
-      options.prog = formatter.formatHelp().trim();
+      var formatter = this._getFormatter()
+      var positionals = this._getPositionalActions()
+      var groups = this._mutuallyExclusiveGroups
+      formatter.addUsage(this.usage, positionals, groups, '')
+      options.prog = formatter.formatHelp().trim()
     }
 
     // create the parsers action and add it to the positionals list
-    var ParsersClass = this._popActionClass(options, 'parsers');
-    var action = new ParsersClass(options);
-    this._subparsers._addAction(action);
+    var ParsersClass = this._popActionClass(options, 'parsers')
+    var action = new ParsersClass(options)
+    this._subparsers._addAction(action)
 
     // return the created parsers action
-    return action;
-  };
+    return action
+  }
 
   _addAction(action) {
     if (action.isOptional()) {
-      this._optionals._addAction(action);
+      this._optionals._addAction(action)
     } else {
-      this._positionals._addAction(action);
+      this._positionals._addAction(action)
     }
-    return action;
-  };
+    return action
+  }
 
   _getOptionalActions() {
     return this._actions.filter(function (action) {
-      return action.isOptional();
-    });
-  };
+      return action.isOptional()
+    })
+  }
 
   _getPositionalActions() {
     return this._actions.filter(function (action) {
-      return action.isPositional();
-    });
-  };
+      return action.isPositional()
+    })
+  }
 
 
   /**
@@ -216,18 +215,18 @@ export default class ArgumentParser extends ActionContainer {
    * [1]:http://docs.python.org/dev/library/argparse.html#the-parse-args-method
    **/
   parseArgs(args, namespace) {
-    var argv;
-    var result = this.parseKnownArgs(args, namespace);
+    var argv
+    var result = this.parseKnownArgs(args, namespace)
 
-    args = result[0];
-    argv = result[1];
+    args = result[0]
+    argv = result[1]
     if (argv && argv.length > 0) {
       this.error(
         format('Unrecognized arguments: %s.', argv.join(' '))
-      );
+      )
     }
-    return args;
-  };
+    return args
+  }
 
   /**
    * ArgumentParser#parseKnownArgs(args, namespace) -> array
@@ -243,51 +242,51 @@ export default class ArgumentParser extends ActionContainer {
    **/
   parseKnownArgs(_args, _namespace) {
     // args default to the system args
-    const args = _args || process.argv.slice(2);
+    const args = _args || process.argv.slice(2)
 
     // default Namespace built from parser defaults
-    const namespace = _namespace || new Namespace();
+    const namespace = _namespace || new Namespace()
 
     this._actions.forEach(action => {
       if (action.dest !== c.SUPPRESS) {
         if (!has(namespace, action.dest)) {
           if (action.defaultValue !== c.SUPPRESS) {
-            var defaultValue = action.defaultValue;
+            var defaultValue = action.defaultValue
             if (typeof action.defaultValue === 'string') {
-              defaultValue = this._getValue(action, defaultValue);
+              defaultValue = this._getValue(action, defaultValue)
             }
-            namespace[action.dest] = defaultValue;
+            namespace[action.dest] = defaultValue
           }
         }
       }
-    });
+    })
 
     Object.keys(this._defaults).forEach((dest) => {
-      namespace[dest] = this._defaults[dest];
-    });
+      namespace[dest] = this._defaults[dest]
+    })
 
     // parse the arguments and exit if there are any errors
     try {
-      let [namespace2, args2] = this._parseKnownArgs(args, namespace);
+      let [namespace2, args2] = this._parseKnownArgs(args, namespace)
 
       if (has(namespace2, c._UNRECOGNIZED_ARGS_ATTR)) {
-        args2 = arrayUnion(args2, namespace2[c._UNRECOGNIZED_ARGS_ATTR]);
-        delete namespace2[c._UNRECOGNIZED_ARGS_ATTR];
+        args2 = arrayUnion(args2, namespace2[c._UNRECOGNIZED_ARGS_ATTR])
+        delete namespace2[c._UNRECOGNIZED_ARGS_ATTR]
       }
-      return [ namespace2, args2 ];
+      return [ namespace2, args2 ]
     } catch (e) {
-      this.error(e);
+      this.error(e)
     }
-  };
+  }
 
   _parseKnownArgs(argStrings, namespace) {
-    var self = this;
+    var self = this
 
-    var extras = [];
+    var extras = []
 
     // replace arg strings that are file references
     if (this.fromfilePrefixChars !== null) {
-      argStrings = this._readArgsFromFiles(argStrings);
+      argStrings = this._readArgsFromFiles(argStrings)
     }
     // map all mutually exclusive arguments to the other arguments
     // they can't occur with
@@ -299,149 +298,149 @@ export default class ArgumentParser extends ActionContainer {
       // some sort of hashable key for this action
       // action itself cannot be a key in actionConflicts
       // I think getName() (join of optionStrings) is unique enough
-      return action.getName();
+      return action.getName()
     }
 
-    var conflicts, key;
-    var actionConflicts = {};
+    var conflicts, key
+    var actionConflicts = {}
 
     this._mutuallyExclusiveGroups.forEach(function (mutexGroup) {
       mutexGroup._groupActions.forEach(function (mutexAction, i, groupActions) {
-        key = actionHash(mutexAction);
+        key = actionHash(mutexAction)
         if (!has(actionConflicts, key)) {
-          actionConflicts[key] = [];
+          actionConflicts[key] = []
         }
-        conflicts = actionConflicts[key];
-        conflicts.push.apply(conflicts, groupActions.slice(0, i));
-        conflicts.push.apply(conflicts, groupActions.slice(i + 1));
-      });
-    });
+        conflicts = actionConflicts[key]
+        conflicts.push.apply(conflicts, groupActions.slice(0, i))
+        conflicts.push.apply(conflicts, groupActions.slice(i + 1))
+      })
+    })
 
     // find all option indices, and determine the arg_string_pattern
     // which has an 'O' if there is an option at an index,
     // an 'A' if there is an argument, or a '-' if there is a '--'
-    var optionStringIndices = {};
+    var optionStringIndices = {}
 
-    var argStringPatternParts = [];
+    var argStringPatternParts = []
 
     argStrings.forEach(function (argString, argStringIndex) {
       if (argString === '--') {
-        argStringPatternParts.push('-');
+        argStringPatternParts.push('-')
         while (argStringIndex < argStrings.length) {
-          argStringPatternParts.push('A');
-          argStringIndex++;
+          argStringPatternParts.push('A')
+          argStringIndex++
         }
       } else {
         // otherwise, add the arg to the arg strings
         // and note the index if it was an option
-        var pattern;
-        var optionTuple = self._parseOptional(argString);
+        var pattern
+        var optionTuple = self._parseOptional(argString)
         if (!optionTuple) {
-          pattern = 'A';
+          pattern = 'A'
         } else {
-          optionStringIndices[argStringIndex] = optionTuple;
-          pattern = 'O';
+          optionStringIndices[argStringIndex] = optionTuple
+          pattern = 'O'
         }
-        argStringPatternParts.push(pattern);
+        argStringPatternParts.push(pattern)
       }
-    });
-    var argStringsPattern = argStringPatternParts.join('');
+    })
+    var argStringsPattern = argStringPatternParts.join('')
 
-    var seenActions = [];
-    var seenNonDefaultActions = [];
+    var seenActions = []
+    var seenNonDefaultActions = []
 
 
     function takeAction(action, argumentStrings, optionString) {
-      seenActions.push(action);
-      var argumentValues = self._getValues(action, argumentStrings);
+      seenActions.push(action)
+      var argumentValues = self._getValues(action, argumentStrings)
 
       // error if this argument is not allowed with other previously
       // seen arguments, assuming that actions that use the default
       // value don't really count as "present"
       if (argumentValues !== action.defaultValue) {
-        seenNonDefaultActions.push(action);
+        seenNonDefaultActions.push(action)
         if (actionConflicts[actionHash(action)]) {
           actionConflicts[actionHash(action)].forEach(function (actionConflict) {
             if (seenNonDefaultActions.indexOf(actionConflict) >= 0) {
               throw argumentErrorHelper(
                 action,
                 format('Not allowed with argument "%s".', actionConflict.getName())
-              );
+              )
             }
-          });
+          })
         }
       }
 
       if (argumentValues !== c.SUPPRESS) {
-        action.call(self, namespace, argumentValues, optionString);
+        action.call(self, namespace, argumentValues, optionString)
       }
     }
 
     function consumeOptional(startIndex) {
       // get the optional identified at this index
-      var optionTuple = optionStringIndices[startIndex];
-      var action = optionTuple[0];
-      var optionString = optionTuple[1];
-      var explicitArg = optionTuple[2];
+      var optionTuple = optionStringIndices[startIndex]
+      var action = optionTuple[0]
+      var optionString = optionTuple[1]
+      var explicitArg = optionTuple[2]
 
       // identify additional optionals in the same arg string
       // (e.g. -xyz is the same as -x -y -z if no args are required)
-      var actionTuples = [];
+      var actionTuples = []
 
-      var args, argCount, start, stop;
+      var args, argCount, start, stop
 
-      for (;;) {
+      while (true) {
         if (!action) {
-          extras.push(argStrings[startIndex]);
-          return startIndex + 1;
+          extras.push(argStrings[startIndex])
+          return startIndex + 1
         }
         if (explicitArg) {
-          argCount = self._matchArgument(action, 'A');
+          argCount = self._matchArgument(action, 'A')
 
           // if the action is a single-dash option and takes no
           // arguments, try to parse more single-dash options out
           // of the tail of the option string
-          var chars = self.prefixChars;
+          var chars = self.prefixChars
           if (argCount === 0 && chars.indexOf(optionString[1]) < 0) {
-            actionTuples.push([ action, [], optionString ]);
-            optionString = optionString[0] + explicitArg[0];
-            var newExplicitArg = explicitArg.slice(1) || null;
-            var optionalsMap = self._optionStringActions;
+            actionTuples.push([ action, [], optionString ])
+            optionString = optionString[0] + explicitArg[0]
+            var newExplicitArg = explicitArg.slice(1) || null
+            var optionalsMap = self._optionStringActions
 
             if (Object.keys(optionalsMap).indexOf(optionString) >= 0) {
-              action = optionalsMap[optionString];
-              explicitArg = newExplicitArg;
+              action = optionalsMap[optionString]
+              explicitArg = newExplicitArg
             } else {
-              throw argumentErrorHelper(action, sprintf('ignored explicit argument %r', explicitArg));
+              throw argumentErrorHelper(action, sprintf('ignored explicit argument %r', explicitArg))
             }
           } else if (argCount === 1) {
             // if the action expect exactly one argument, we've
             // successfully matched the option; exit the loop
-            stop = startIndex + 1;
-            args = [ explicitArg ];
-            actionTuples.push([ action, args, optionString ]);
-            break;
+            stop = startIndex + 1
+            args = [ explicitArg ]
+            actionTuples.push([ action, args, optionString ])
+            break
           } else {
             // error if a double-dash option did not use the
             // explicit argument
-            throw argumentErrorHelper(action, sprintf('ignored explicit argument %r', explicitArg));
+            throw argumentErrorHelper(action, sprintf('ignored explicit argument %r', explicitArg))
           }
         } else {
           // if there is no explicit argument, try to match the
           // optional's string arguments with the following strings
           // if successful, exit the loop
 
-          start = startIndex + 1;
-          var selectedPatterns = argStringsPattern.substr(start);
+          start = startIndex + 1
+          var selectedPatterns = argStringsPattern.substr(start)
 
-          argCount = self._matchArgument(action, selectedPatterns);
-          stop = start + argCount;
+          argCount = self._matchArgument(action, selectedPatterns)
+          stop = start + argCount
 
 
-          args = argStrings.slice(start, stop);
+          args = argStrings.slice(start, stop)
 
-          actionTuples.push([ action, args, optionString ]);
-          break;
+          actionTuples.push([ action, args, optionString ])
+          break
         }
 
       }
@@ -449,184 +448,183 @@ export default class ArgumentParser extends ActionContainer {
       // add the Optional to the list and return the index at which
       // the Optional's string args stopped
       if (actionTuples.length < 1) {
-        throw new Error('length should be > 0');
+        throw new Error('length should be > 0')
       }
       for (var i = 0; i < actionTuples.length; i++) {
-        takeAction.apply(self, actionTuples[i]);
+        takeAction.apply(self, actionTuples[i])
       }
-      return stop;
+      return stop
     }
 
-    // the list of Positionals left to be parsed; this is modified
+    // the list of Positionals left to be parsed this is modified
     // by consume_positionals()
-    var positionals = self._getPositionalActions();
+    var positionals = self._getPositionalActions()
 
     function consumePositionals(startIndex) {
       // match as many Positionals as possible
-      var selectedPattern = argStringsPattern.substr(startIndex);
-      var argCounts = self._matchArgumentsPartial(positionals, selectedPattern);
+      var selectedPattern = argStringsPattern.substr(startIndex)
+      var argCounts = self._matchArgumentsPartial(positionals, selectedPattern)
 
       // slice off the appropriate arg strings for each Positional
       // and add the Positional and its args to the list
       for (var i = 0; i < positionals.length; i++) {
-        var action = positionals[i];
-        var argCount = argCounts[i];
+        var action = positionals[i]
+        var argCount = argCounts[i]
         if (typeof argCount === 'undefined') {
-          continue;
+          continue
         }
-        var args = argStrings.slice(startIndex, startIndex + argCount);
+        var args = argStrings.slice(startIndex, startIndex + argCount)
 
-        startIndex += argCount;
-        takeAction(action, args);
+        startIndex += argCount
+        takeAction(action, args)
       }
 
       // slice off the Positionals that we just parsed and return the
       // index at which the Positionals' string args stopped
-      positionals = positionals.slice(argCounts.length);
-      return startIndex;
+      positionals = positionals.slice(argCounts.length)
+      return startIndex
     }
 
     // consume Positionals and Optionals alternately, until we have
     // passed the last option string
-    var startIndex = 0;
-    var position;
+    var startIndex = 0
+    var position
 
-    var maxOptionStringIndex = -1;
+    var maxOptionStringIndex = -1
 
     Object.keys(optionStringIndices).forEach(function (position) {
-      maxOptionStringIndex = Math.max(maxOptionStringIndex, parseInt(position, 10));
-    });
+      maxOptionStringIndex = Math.max(maxOptionStringIndex, parseInt(position, 10))
+    })
 
-    var positionalsEndIndex, nextOptionStringIndex;
+    var positionalsEndIndex, nextOptionStringIndex
 
     while (startIndex <= maxOptionStringIndex) {
       // consume any Positionals preceding the next option
-      nextOptionStringIndex = null;
+      nextOptionStringIndex = null
       for (position in optionStringIndices) {
-        if (!optionStringIndices.hasOwnProperty(position)) { continue; }
+        if (!optionStringIndices.hasOwnProperty(position)) { continue }
 
-        position = parseInt(position, 10);
+        position = parseInt(position, 10)
         if (position >= startIndex) {
           if (nextOptionStringIndex !== null) {
-            nextOptionStringIndex = Math.min(nextOptionStringIndex, position);
+            nextOptionStringIndex = Math.min(nextOptionStringIndex, position)
           } else {
-            nextOptionStringIndex = position;
+            nextOptionStringIndex = position
           }
         }
       }
 
       if (startIndex !== nextOptionStringIndex) {
-        positionalsEndIndex = consumePositionals(startIndex);
+        positionalsEndIndex = consumePositionals(startIndex)
         // only try to parse the next optional if we didn't consume
         // the option string during the positionals parsing
         if (positionalsEndIndex > startIndex) {
-          startIndex = positionalsEndIndex;
-          continue;
+          startIndex = positionalsEndIndex
+          continue
         } else {
-          startIndex = positionalsEndIndex;
+          startIndex = positionalsEndIndex
         }
       }
 
       // if we consumed all the positionals we could and we're not
       // at the index of an option string, there were extra arguments
       if (!optionStringIndices[startIndex]) {
-        var strings = argStrings.slice(startIndex, nextOptionStringIndex);
-        extras = extras.concat(strings);
-        startIndex = nextOptionStringIndex;
+        var strings = argStrings.slice(startIndex, nextOptionStringIndex)
+        extras = extras.concat(strings)
+        startIndex = nextOptionStringIndex
       }
       // consume the next optional and any arguments for it
-      startIndex = consumeOptional(startIndex);
+      startIndex = consumeOptional(startIndex)
     }
 
     // consume any positionals following the last Optional
-    var stopIndex = consumePositionals(startIndex);
+    var stopIndex = consumePositionals(startIndex)
 
     // if we didn't consume all the argument strings, there were extras
-    extras = extras.concat(argStrings.slice(stopIndex));
+    extras = extras.concat(argStrings.slice(stopIndex))
 
     // if we didn't use all the Positional objects, there were too few
     // arg strings supplied.
     if (positionals.length > 0) {
-      self.error('too few arguments');
+      self.error('too few arguments')
     }
 
     // make sure all required actions were present
     self._actions.forEach(function (action) {
       if (action.required) {
         if (seenActions.indexOf(action) < 0) {
-          self.error(format('Argument "%s" is required', action.getName()));
+          self.error(format('Argument "%s" is required', action.getName()))
         }
       }
-    });
+    })
 
     // make sure all required groups have one option present
-    var actionUsed = false;
+    var actionUsed = false
     self._mutuallyExclusiveGroups.forEach(function (group) {
       if (group.required) {
         actionUsed = group._groupActions.some(function (action) {
-          return seenNonDefaultActions.indexOf(action) !== -1;
-        });
+          return seenNonDefaultActions.indexOf(action) !== -1
+        })
 
         // if no actions were used, report the error
         if (!actionUsed) {
-          var names = [];
+          var names = []
           group._groupActions.forEach(function (action) {
             if (action.help !== c.SUPPRESS) {
-              names.push(action.getName());
+              names.push(action.getName())
             }
-          });
-          names = names.join(' ');
-          var msg = 'one of the arguments ' + names + ' is required';
-          self.error(msg);
+          })
+          names = names.join(' ')
+          var msg = 'one of the arguments ' + names + ' is required'
+          self.error(msg)
         }
       }
-    });
+    })
 
     // return the updated namespace and the extra arguments
-    return [ namespace, extras ];
-  };
+    return [ namespace, extras ]
+  }
 
   _readArgsFromFiles(argStrings) {
     // expand arguments referencing files
-    var self = this;
-    var fs = require('fs');
-    var newArgStrings = [];
+    var self = this
+    var newArgStrings = []
     argStrings.forEach(function (argString) {
       if (self.fromfilePrefixChars.indexOf(argString[0]) < 0) {
         // for regular arguments, just add them back into the list
-        newArgStrings.push(argString);
+        newArgStrings.push(argString)
       } else {
         // replace arguments referencing files with the file content
         try {
-          var argstrs = [];
-          var filename = argString.slice(1);
-          var content = fs.readFileSync(filename, 'utf8');
-          content = content.trim().split('\n');
+          var argstrs = []
+          var filename = argString.slice(1)
+          var content = fs.readFileSync(filename, 'utf8')
+          content = content.trim().split('\n')
           content.forEach(function (argLine) {
             self.convertArgLineToArgs(argLine).forEach(function (arg) {
-              argstrs.push(arg);
-            });
-            argstrs = self._readArgsFromFiles(argstrs);
-          });
-          newArgStrings.push.apply(newArgStrings, argstrs);
+              argstrs.push(arg)
+            })
+            argstrs = self._readArgsFromFiles(argstrs)
+          })
+          newArgStrings.push.apply(newArgStrings, argstrs)
         } catch (error) {
-          return self.error(error.message);
+          return self.error(error.message)
         }
       }
-    });
-    return newArgStrings;
-  };
+    })
+    return newArgStrings
+  }
 
   convertArgLineToArgs(argLine) {
-    return [ argLine ];
-  };
+    return [ argLine ]
+  }
 
   _matchArgument(action, regexpArgStrings) {
 
     // match the pattern for this action to the arg strings
-    var regexpNargs = new RegExp('^' + this._getNargsPattern(action));
-    var matches = regexpArgStrings.match(regexpNargs);
-    var message;
+    var regexpNargs = new RegExp('^' + this._getNargsPattern(action))
+    var matches = regexpArgStrings.match(regexpNargs)
+    var message
 
     // throw an exception if we weren't able to find a match
     if (!matches) {
@@ -634,112 +632,107 @@ export default class ArgumentParser extends ActionContainer {
         /*eslint-disable no-undefined*/
         case undefined:
         case null:
-          message = 'Expected one argument.';
-          break;
+          message = 'Expected one argument.'
+          break
         case c.OPTIONAL:
-          message = 'Expected at most one argument.';
-          break;
+          message = 'Expected at most one argument.'
+          break
         case c.ONE_OR_MORE:
-          message = 'Expected at least one argument.';
-          break;
+          message = 'Expected at least one argument.'
+          break
         default:
-          message = 'Expected %s argument(s)';
+          message = 'Expected %s argument(s)'
       }
 
       throw argumentErrorHelper(
         action,
         format(message, action.nargs)
-      );
+      )
     }
     // return the number of arguments matched
-    return matches[1].length;
-  };
+    return matches[1].length
+  }
 
   _matchArgumentsPartial(actions, regexpArgStrings) {
     // progressively shorten the actions list by slicing off the
     // final actions until we find a match
-    var self = this;
-    var result = [];
-    var actionSlice, pattern, matches;
-    var i, j;
+    var result = []
+    var actionSlice, pattern, matches
+    var i, j
 
     function getLength(string) {
-      return string.length;
+      return string.length
     }
 
     for (i = actions.length; i > 0; i--) {
-      pattern = '';
-      actionSlice = actions.slice(0, i);
+      pattern = ''
+      actionSlice = actions.slice(0, i)
       for (j = 0; j < actionSlice.length; j++) {
-        pattern += self._getNargsPattern(actionSlice[j]);
+        pattern += this._getNargsPattern(actionSlice[j])
       }
 
-      pattern = new RegExp('^' + pattern);
-      matches = regexpArgStrings.match(pattern);
+      pattern = new RegExp('^' + pattern)
+      matches = regexpArgStrings.match(pattern)
 
       if (matches && matches.length > 0) {
         // need only groups
-        matches = matches.splice(1);
-        result = result.concat(matches.map(getLength));
-        break;
+        matches = matches.splice(1)
+        result = result.concat(matches.map(getLength))
+        break
       }
     }
 
     // return the list of arg string counts
-    return result;
-  };
+    return result
+  }
 
   _parseOptional(argString) {
-    var action, optionString, argExplicit, optionTuples;
+    var action, optionString, argExplicit, optionTuples
 
     // if it's an empty string, it was meant to be a positional
-    if (!argString) {
-      return null;
-    }
+    if (! argString) return null
 
     // if it doesn't start with a prefix, it was meant to be positional
-    if (this.prefixChars.indexOf(argString[0]) < 0) {
-      return null;
-    }
+    if (this.prefixChars.indexOf(argString[0]) < 0) return null
 
     // if the option string is present in the parser, return the action
     if (this._optionStringActions[argString]) {
-      return [ this._optionStringActions[argString], argString, null ];
+      return [ this._optionStringActions[argString], argString, null ]
     }
 
     // if it's just a single character, it was meant to be positional
     if (argString.length === 1) {
-      return null;
+      return null
     }
 
     // if the option string before the "=" is present, return the action
     if (argString.indexOf('=') >= 0) {
-      optionString = argString.split('=', 1)[0];
-      argExplicit = argString.slice(optionString.length + 1);
+      optionString = argString.split('=', 1)[0]
+      argExplicit = argString.slice(optionString.length + 1)
 
       if (this._optionStringActions[optionString]) {
-        action = this._optionStringActions[optionString];
-        return [ action, optionString, argExplicit ];
+        action = this._optionStringActions[optionString]
+        return [ action, optionString, argExplicit ]
       }
     }
 
     // search through all possible prefixes of the option string
     // and all actions in the parser for possible interpretations
-    optionTuples = this._getOptionTuples(argString);
+    optionTuples = this._getOptionTuples(argString)
 
     // if multiple actions match, the option string was ambiguous
     if (optionTuples.length > 1) {
       var optionStrings = optionTuples.map(function (optionTuple) {
-        return optionTuple[1];
-      });
+        return optionTuple[1]
+      })
       this.error(format(
             'Ambiguous option: "%s" could match %s.',
             argString, optionStrings.join(', ')
-      ));
+      ))
     // if exactly one action matched, this segmentation is good,
     // so return the parsed action
     } else if (optionTuples.length === 1) {
-      return optionTuples[0];
+      return optionTuples[0]
     }
 
     // if it was not found as an option, but it looks like a negative
@@ -747,44 +740,44 @@ export default class ArgumentParser extends ActionContainer {
     // unless there are negative-number-like options
     if (argString.match(this._regexpNegativeNumber)) {
       if (!this._hasNegativeNumberOptionals.some(Boolean)) {
-        return null;
+        return null
       }
     }
     // if it contains a space, it was meant to be a positional
     if (argString.search(' ') >= 0) {
-      return null;
+      return null
     }
 
     // it was meant to be an optional but there is no such option
     // in this parser (though it might be a valid option in a subparser)
-    return [ null, argString, null ];
-  };
+    return [ null, argString, null ]
+  }
 
   _getOptionTuples(optionString) {
-    var result = [];
-    var chars = this.prefixChars;
-    var optionPrefix;
-    var argExplicit;
-    var action;
-    var actionOptionString;
+    var result = []
+    var chars = this.prefixChars
+    var optionPrefix
+    var argExplicit
+    var action
+    var actionOptionString
 
     // option strings starting with two prefix characters are only split at
     // the '='
     if (chars.indexOf(optionString[0]) >= 0 && chars.indexOf(optionString[1]) >= 0) {
       if (optionString.indexOf('=') >= 0) {
-        var optionStringSplit = optionString.split('=', 1);
+        var optionStringSplit = optionString.split('=', 1)
 
-        optionPrefix = optionStringSplit[0];
-        argExplicit = optionStringSplit[1];
+        optionPrefix = optionStringSplit[0]
+        argExplicit = optionStringSplit[1]
       } else {
-        optionPrefix = optionString;
-        argExplicit = null;
+        optionPrefix = optionString
+        argExplicit = null
       }
 
       for (actionOptionString in this._optionStringActions) {
         if (actionOptionString.substr(0, optionPrefix.length) === optionPrefix) {
-          action = this._optionStringActions[actionOptionString];
-          result.push([ action, actionOptionString, argExplicit ]);
+          action = this._optionStringActions[actionOptionString]
+          result.push([ action, actionOptionString, argExplicit ])
         }
       }
 
@@ -792,100 +785,100 @@ export default class ArgumentParser extends ActionContainer {
     // but multiple character options always have to have their argument
     // separate
     } else if (chars.indexOf(optionString[0]) >= 0 && chars.indexOf(optionString[1]) < 0) {
-      optionPrefix = optionString;
-      argExplicit = null;
-      var optionPrefixShort = optionString.substr(0, 2);
-      var argExplicitShort = optionString.substr(2);
+      optionPrefix = optionString
+      argExplicit = null
+      var optionPrefixShort = optionString.substr(0, 2)
+      var argExplicitShort = optionString.substr(2)
 
       for (actionOptionString in this._optionStringActions) {
-        if (!has(this._optionStringActions, actionOptionString)) continue;
+        if (!has(this._optionStringActions, actionOptionString)) continue
 
-        action = this._optionStringActions[actionOptionString];
+        action = this._optionStringActions[actionOptionString]
         if (actionOptionString === optionPrefixShort) {
-          result.push([ action, actionOptionString, argExplicitShort ]);
+          result.push([ action, actionOptionString, argExplicitShort ])
         } else if (actionOptionString.substr(0, optionPrefix.length) === optionPrefix) {
-          result.push([ action, actionOptionString, argExplicit ]);
+          result.push([ action, actionOptionString, argExplicit ])
         }
       }
 
     // shouldn't ever get here
     } else {
-      throw new Error(format('Unexpected option string: %s.', optionString));
+      throw new Error(format('Unexpected option string: %s.', optionString))
     }
     // return the collected option tuples
-    return result;
-  };
+    return result
+  }
 
   _getNargsPattern(action) {
     // in all examples below, we have to allow for '--' args
     // which are represented as '-' in the pattern
-    var regexpNargs;
+    var regexpNargs
 
     switch (action.nargs) {
       // the default (null) is assumed to be a single argument
       case undefined:
       case null:
-        regexpNargs = '(-*A-*)';
-        break;
+        regexpNargs = '(-*A-*)'
+        break
       // allow zero or more arguments
       case c.OPTIONAL:
-        regexpNargs = '(-*A?-*)';
-        break;
+        regexpNargs = '(-*A?-*)'
+        break
       // allow zero or more arguments
       case c.ZERO_OR_MORE:
-        regexpNargs = '(-*[A-]*)';
-        break;
+        regexpNargs = '(-*[A-]*)'
+        break
       // allow one or more arguments
       case c.ONE_OR_MORE:
-        regexpNargs = '(-*A[A-]*)';
-        break;
+        regexpNargs = '(-*A[A-]*)'
+        break
       // allow any number of options or arguments
       case c.REMAINDER:
-        regexpNargs = '([-AO]*)';
-        break;
+        regexpNargs = '([-AO]*)'
+        break
       // allow one argument followed by any number of options or arguments
       case c.PARSER:
-        regexpNargs = '(-*A[-AO]*)';
-        break;
+        regexpNargs = '(-*A[-AO]*)'
+        break
       // all others should be integers
       default:
-        regexpNargs = '(-*' + repeat('-*A', action.nargs) + '-*)';
+        regexpNargs = '(-*' + repeat('-*A', action.nargs) + '-*)'
     }
 
     // if this is an optional action, -- is not allowed
     if (action.isOptional()) {
-      regexpNargs = regexpNargs.replace(/-\*/g, '');
-      regexpNargs = regexpNargs.replace(/-/g, '');
+      regexpNargs = regexpNargs.replace(/-\*/g, '')
+      regexpNargs = regexpNargs.replace(/-/g, '')
     }
 
     // return the pattern
-    return regexpNargs;
-  };
+    return regexpNargs
+  }
 
   //
   // Value conversion methods
   //
 
   _getValues(action, argStrings) {
-    var self = this;
+    var self = this
 
     // for everything but PARSER args, strip out '--'
     if (action.nargs !== c.PARSER && action.nargs !== c.REMAINDER) {
       argStrings = argStrings.filter(function (arrayElement) {
-        return arrayElement !== '--';
-      });
+        return arrayElement !== '--'
+      })
     }
 
-    var value, argString;
+    var value, argString
 
     // optional argument produces a default when not present
     if (argStrings.length === 0 && action.nargs === c.OPTIONAL) {
 
-      value = (action.isOptional()) ? action.constant : action.defaultValue;
+      value = (action.isOptional()) ? action.constant : action.defaultValue
 
       if (typeof (value) === 'string') {
-        value = this._getValue(action, value);
-        this._checkValue(action, value);
+        value = this._getValue(action, value)
+        this._checkValue(action, value)
       }
 
     // when nargs='*' on a positional, if there were no command-line
@@ -893,101 +886,101 @@ export default class ArgumentParser extends ActionContainer {
     } else if (argStrings.length === 0 && action.nargs === c.ZERO_OR_MORE &&
       action.optionStrings.length === 0) {
 
-      value = (action.defaultValue || argStrings);
-      this._checkValue(action, value);
+      value = (action.defaultValue || argStrings)
+      this._checkValue(action, value)
 
     // single argument or optional argument produces a single value
     } else if (argStrings.length === 1 &&
           (!action.nargs || action.nargs === c.OPTIONAL)) {
 
-      argString = argStrings[0];
-      value = this._getValue(action, argString);
-      this._checkValue(action, value);
+      argString = argStrings[0]
+      value = this._getValue(action, argString)
+      this._checkValue(action, value)
 
     // REMAINDER arguments convert all values, checking none
     } else if (action.nargs === c.REMAINDER) {
       value = argStrings.map(function (v) {
-        return self._getValue(action, v);
-      });
+        return self._getValue(action, v)
+      })
 
     // PARSER arguments convert all values, but check only the first
     } else if (action.nargs === c.PARSER) {
       value = argStrings.map(function (v) {
-        return self._getValue(action, v);
-      });
-      this._checkValue(action, value[0]);
+        return self._getValue(action, v)
+      })
+      this._checkValue(action, value[0])
 
     // all other types of nargs produce a list
     } else {
       value = argStrings.map(function (v) {
-        return self._getValue(action, v);
-      });
+        return self._getValue(action, v)
+      })
       value.forEach(function (v) {
-        self._checkValue(action, v);
-      });
+        self._checkValue(action, v)
+      })
     }
 
     // return the converted value
-    return value;
-  };
+    return value
+  }
 
   _getValue(action, argString) {
-    var result;
+    var result
 
-    var typeFunction = this._registryGet('type', action.type, action.type);
+    var typeFunction = this._registryGet('type', action.type, action.type)
     if (typeof typeFunction !== 'function') {
-      var message = format('%s is not callable', typeFunction);
-      throw argumentErrorHelper(action, message);
+      var message = format('%s is not callable', typeFunction)
+      throw argumentErrorHelper(action, message)
     }
 
     // convert the value to the appropriate type
     try {
-      result = typeFunction(argString);
+      result = typeFunction(argString)
 
       // ArgumentTypeErrors indicate errors
       // If action.type is not a registered string, it is a function
       // Try to deduce its name for inclusion in the error message
       // Failing that, include the error message it raised.
     } catch (e) {
-      var name = null;
+      var name = null
       if (typeof action.type === 'string') {
-        name = action.type;
+        name = action.type
       } else {
-        name = action.type.name || action.type.displayName || '<function>';
+        name = action.type.name || action.type.displayName || '<function>'
       }
-      var msg = format('Invalid %s value: %s', name, argString);
-      if (name === '<function>') { msg += '\n' + e.message; }
-      throw argumentErrorHelper(action, msg);
+      var msg = format('Invalid %s value: %s', name, argString)
+      if (name === '<function>') { msg += '\n' + e.message }
+      throw argumentErrorHelper(action, msg)
     }
     // return the converted value
-    return result;
-  };
+    return result
+  }
 
   _checkValue(action, value) {
     // converted value must be one of the choices (if specified)
-    var choices = action.choices;
+    var choices = action.choices
     if (choices) {
       // choise for argument can by array or string
       if ((typeof choices === 'string' || Array.isArray(choices)) &&
           choices.indexOf(value) !== -1) {
-        return;
+        return
       }
       // choise for subparsers can by only hash
       if (typeof choices === 'object' && !Array.isArray(choices) && choices[value]) {
-        return;
+        return
       }
 
       if (typeof choices === 'string') {
-        choices = choices.split('').join(', ');
+        choices = choices.split('').join(', ')
       } else if (Array.isArray(choices)) {
-        choices =  choices.join(', ');
+        choices =  choices.join(', ')
       } else {
-        choices =  Object.keys(choices).join(', ');
+        choices =  Object.keys(choices).join(', ')
       }
-      var message = format('Invalid choice: %s (choose from [%s])', value, choices);
-      throw argumentErrorHelper(action, message);
+      var message = format('Invalid choice: %s (choose from [%s])', value, choices)
+      throw argumentErrorHelper(action, message)
     }
-  };
+  }
 
   //
   // Help formatting methods
@@ -1003,10 +996,10 @@ export default class ArgumentParser extends ActionContainer {
    * [1]:http://docs.python.org/dev/library/argparse.html#printing-help
    **/
   formatUsage() {
-    var formatter = this._getFormatter();
-    formatter.addUsage(this.usage, this._actions, this._mutuallyExclusiveGroups);
-    return formatter.formatHelp();
-  };
+    var formatter = this._getFormatter()
+    formatter.addUsage(this.usage, this._actions, this._mutuallyExclusiveGroups)
+    return formatter.formatHelp()
+  }
 
   /**
    * ArgumentParser#formatHelp -> string
@@ -1018,34 +1011,34 @@ export default class ArgumentParser extends ActionContainer {
    * [1]:http://docs.python.org/dev/library/argparse.html#printing-help
    **/
   formatHelp() {
-    var formatter = this._getFormatter();
+    var formatter = this._getFormatter()
 
     // usage
-    formatter.addUsage(this.usage, this._actions, this._mutuallyExclusiveGroups);
+    formatter.addUsage(this.usage, this._actions, this._mutuallyExclusiveGroups)
 
     // description
-    formatter.addText(this.description);
+    formatter.addText(this.description)
 
     // positionals, optionals and user-defined groups
     this._actionGroups.forEach(function (actionGroup) {
-      formatter.startSection(actionGroup.title);
-      formatter.addText(actionGroup.description);
-      formatter.addArguments(actionGroup._groupActions);
-      formatter.endSection();
-    });
+      formatter.startSection(actionGroup.title)
+      formatter.addText(actionGroup.description)
+      formatter.addArguments(actionGroup._groupActions)
+      formatter.endSection()
+    })
 
     // epilog
-    formatter.addText(this.epilog);
+    formatter.addText(this.epilog)
 
     // determine help from format above
-    return formatter.formatHelp();
-  };
+    return formatter.formatHelp()
+  }
 
   _getFormatter() {
-    var FormatterClass = this.formatterClass;
-    var formatter = new FormatterClass({ prog: this.prog });
-    return formatter;
-  };
+    var FormatterClass = this.formatterClass
+    var formatter = new FormatterClass({ prog: this.prog })
+    return formatter
+  }
 
   //
   //  Print functions
@@ -1061,8 +1054,8 @@ export default class ArgumentParser extends ActionContainer {
    * [1]:http://docs.python.org/dev/library/argparse.html#printing-help
    **/
   printUsage() {
-    this._printMessage(this.formatUsage());
-  };
+    this._printMessage(this.formatUsage())
+  }
 
   /**
    * ArgumentParser#printHelp() -> Void
@@ -1074,17 +1067,17 @@ export default class ArgumentParser extends ActionContainer {
    * [1]:http://docs.python.org/dev/library/argparse.html#printing-help
    **/
   printHelp() {
-    this._printMessage(this.formatHelp());
-  };
+    this._printMessage(this.formatHelp())
+  }
 
   _printMessage(message, stream) {
     if (!stream) {
-      stream = process.stdout;
+      stream = process.stdout
     }
     if (message) {
-      stream.write('' + message);
+      stream.write('' + message)
     }
-  };
+  }
 
   //
   //  Exit functions
@@ -1100,14 +1093,14 @@ export default class ArgumentParser extends ActionContainer {
   exit(status, message) {
     if (message) {
       if (status === 0) {
-        this._printMessage(message);
+        this._printMessage(message)
       } else {
-        this._printMessage(message, process.stderr);
+        this._printMessage(message, process.stderr)
       }
     }
 
-    process.exit(status);
-  };
+    process.exit(status)
+  }
 
   /**
    * ArgumentParser#error(message) -> Void
@@ -1120,24 +1113,24 @@ export default class ArgumentParser extends ActionContainer {
    *
    **/
   error(err) {
-    var message;
+    var message
     if (err instanceof Error) {
       if (this.debug === true) {
-        throw err;
+        throw err
       }
-      message = err.message;
+      message = err.message
     } else {
-      message = err;
+      message = err
     }
-    var msg = format('%s: error: %s', this.prog, message) + c.EOL;
+    var msg = format('%s: error: %s', this.prog, message) + c.EOL
 
     if (this.debug === true) {
-      throw new Error(msg);
+      throw new Error(msg)
     }
 
-    this.printUsage(process.stderr);
+    this.printUsage(process.stderr)
 
-    return this.exit(2, msg);
+    return this.exit(2, msg)
   }
-};
+}
 
