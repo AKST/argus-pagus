@@ -22,6 +22,8 @@ help:
 lint:
 	./node_modules/.bin/eslint src/lib
 
+type:
+	./node_modules/.bin/flow
 
 test: build
 	cd lib && ../node_modules/.bin/mocha

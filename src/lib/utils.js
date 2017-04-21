@@ -1,53 +1,113 @@
-export function repeat (str, num) {
-  let result = ''
-  for (let i = 0; i < num; i++) result += str
-  return result
+// @flow
+
+class Counter {
+  _pos: number
+  _end: number
+  _step: number
+
+  constructor (from: number, to: number, step: number) {
+    this._pos = from
+    this._end = to
+    this._step = step
+  }
+
+  next (): { done: boolean, value?: number } {
+    if (this._pos >= this._end) return { done: true }
+    const result = this._pos
+    this._pos += this._step
+    return { done: false, value: result }
+  }
+
+  /*::
+  @@iterator(): Iterator<number> {
+    throw new Error()
+  }*/
+
+  /**
+   * An iterator for the stream
+   */
+  // $FlowTodo: https://github.com/facebook/flow/issues/2286
+  [Symbol.iterator] () {
+    return this
+  }
 }
 
-export function arrayEqual (a, b) {
+export function range (from: number, to: number, step: number = 1): Iterable<number> {
+  if (from > to) throw new Error('to needs be less than from')
+  return new Counter(from, to, step)
+}
+
+export function repeat (string: string, times: number): string {
+  if (times < 0) throw new Error('times cannot be less than 0')
+  let it = 0
+  let acc = ''
+
+  while (it++ < times) acc += string
+  return acc
+}
+
+export function arrayEqual<A> (a: Array<A>, b: Array<A>): boolean {
   if (a.length !== b.length) return false
-  for (let i = 0; i < a.length; i++) {
+
+  for (const i of range(0, a.length)) {
     if (a[i] !== b[i]) return false
   }
+
   return true
 }
 
-export function trimChars (str, chars) {
-  let start = 0
-  let end = str.length - 1
-  while (chars.indexOf(str.charAt(start)) >= 0) start++
-  while (chars.indexOf(str.charAt(end)) >= 0) end--
-  return str.slice(start, end + 1)
+export function deepKeys (object: Object): Iterable<string> {
+  return Object.getOwnPropertyNames(object)
 }
 
-export function capitalize (str) {
-  return str.charAt(0).toUpperCase() + str.slice(1)
+export function trimChars (str: string, chars: Array<string>): string {
+  let sIndex = 0
+  let eIndex = str.length - 1
+
+  while (chars.indexOf(str.charAt(sIndex)) >= 0) sIndex += 1
+  while (chars.indexOf(str.charAt(eIndex)) >= 0) eIndex -= 1
+  return str.slice(sIndex, eIndex + 1)
 }
 
-export function arrayUnion () {
+export function trimEnd (str: string): string {
+  return str.replace(/\s+$/g, '')
+}
+
+export function capitalize (str: string): string {
+  const head = str.charAt(0).toUpperCase()
+  const tail = str.slice(1)
+  return `${head}${tail}`
+}
+
+export function arrayUnion<A> (...args: Array<Array<A>>): Array<A> {
   const result = []
-  for (let i = 0, values = {}; i < arguments.length; i++) {
-    let arr = arguments[i]
-    for (let j = 0; j < arr.length; j++) {
-      if (! values[arr[j]]) {
-        values[arr[j]] = true
-        result.push(arr[j])
+  const known = new Set()
+
+  for (const i of range(0, args.length)) {
+    const subArray = args[i]
+
+    for (const j of range(0, subArray.length)) {
+      const value = subArray[j]
+
+      if (! known.has(value)) {
+        result.push(value)
+        known.add(value)
       }
     }
   }
+
   return result
 }
 
-export function has (obj, key) {
-  return Object.prototype.hasOwnProperty.call(obj, key)
+export function has (object: Object, key: string): boolean {
+  return object.hasOwnProperty(key)
 }
 
-export function extend (dest, src) {
-  for (const i in src) {
-    if (has(src, i)) dest[i] = src[i]
+export function extend<A: Object, B> (dest: B, src: ?A) {
+  if (src == null) return
+
+  for (const i of Object.keys(src)) {
+    // $FlowTodo
+    dest[i] = src[i]
   }
-}
-
-export function trimEnd (str) {
-  return str.replace(/\s+$/g, '')
 }
