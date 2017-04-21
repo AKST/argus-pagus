@@ -8,7 +8,7 @@ const exports = {
   REMAINDER: '...',
   _UNRECOGNIZED_ARGS_ATTR: '_unrecognized_args',
   HELP_FLAG: Symbol('HELP_FLAG'),
-  VERS_FLAG: Symbol('VERSION_FLAG')
+  VERS_FLAG: Symbol('VERSION_FLAG'),
 }
 
 export const EOL = exports.EOL
